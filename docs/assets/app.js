@@ -136,7 +136,9 @@
     return zs.reduce((acc, z, i) => acc + w[i] * f(Math.min(top, Math.max(0, x + z * sd))), 0) / W;
   }
   const p50 = u => { const v = (-u.a - C.shift) / u.b; return v >= 0 && v <= Math.min(u.max, SETCAP[u.set] || u.max) ? Math.round(v) : null; };   // 실제 최고점(예: 일본어+종합+수학1 774)을 넘으면 「만점 넘음」
-  const weak = u => u.auc < .65 || p50(u) == null;
+  const MIN_N = 30;   // 학습 인원이 이보다 적으면 곡선이 흔들려서 참고용
+  const weak = u => u.auc < .65 || p50(u) == null || u.n < MIN_N;
+  const weakTag = u => `<span class="ig-tag-nonscore">${u.auc >= .65 && p50(u) != null && u.n < MIN_N ? '자료 적음' : '점수 외 요소 큼'}</span>`;
   function evalUnit(u, pred) {
     const x = setScore(pred, u.set); if (x == null) return null;
     const p = pAt(u, x, setSd(pred, u.set)); return { u, x: Math.round(x), p, z: zoneOf(p), m: p50(u), weak: weak(u) };
@@ -217,10 +219,11 @@
         ${sectionH(3, '추천 학교', '', 'recmeta')}
         <div class="sh-filters">
           <label class="ig-field"><span class="ig-sr">학교·학부 거르기</span><span class="ig-field__control">${icon('search', '')}<input class="ig-input" type="search" id="fq" placeholder="학교·학부 이름 (한국어·일본어)" value="${esc(filt.q)}"></span></label>
-          <label class="sh-check"><input type="checkbox" id="fw" ${filt.weak ? 'checked' : ''}>「점수 외 요소 큼」 학부도 보기</label>
+          <label class="sh-check"><input type="checkbox" id="fw" ${filt.weak ? 'checked' : ''}>「참고용」 학부도 보기</label>
           <span class="ig-muted" style="font-size:12px;margin-left:auto">칸마다 휠로 내려 보기 · 반반 점수 높은 학교부터</span>
         </div>
         <div class="ig-grid ig-grid--3" id="cols"></div>
+        <div id="refbox" style="margin-top:12px"></div>
         <div style="margin-top:12px">${DISC}</div>
       </section>`;
 
@@ -298,22 +301,26 @@
     const cols = document.getElementById('cols'); if (!cols) return;
     const q = filt.q.trim();
     const rows = C.units.filter(u => (u.k === S.kind || u.k === '일본어만') && (!q || (u.s + u.f + (koName(u) || '')).includes(q)))
-      .map(u => evalUnit(u, P)).filter(r => r && r.z && (filt.weak || !r.weak));
-    document.getElementById('recmeta').textContent = P.total == null ? '점수를 넣으면 나옵니다' : `${S.kind} · ${rows.length}개 학부 · 15% 미만은 숨김`;
+      .map(u => evalUnit(u, P)).filter(r => r && r.z);
+    const ref = rows.filter(r => r.weak), main = rows.filter(r => !r.weak);
+    document.getElementById('recmeta').textContent = P.total == null ? '점수를 넣으면 나옵니다' : `${S.kind} · 추천 ${main.length}개 학부 + 참고용 ${ref.length}개 · 15% 미만은 숨김`;
     cols.innerHTML = ZONES.map(([z]) => {
-      const list = rows.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p);
+      const list = main.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p);
       return `<section class="ig-card ig-card--flush sh-col"><div class="sh-col__head">${zoneChip(z)}<b>${list.length}</b><span>${z === '안정' ? '70% 이상' : z === '적정' ? '40~70%' : '15~40%'}</span></div>
         <div class="sh-col__list" tabindex="0" aria-label="${z} 학교 목록 ${list.length}개">${list.length ? list.map(card).join('') : `<div class="ig-empty">${icon('school', '')}<p>${P.total == null ? '점수를 넣으면 나옵니다' : '해당 학부 없음'}</p></div>`}</div></section>`;
     }).join('');
+    const rb = document.getElementById('refbox');
+    if (rb) rb.innerHTML = filt.weak && ref.length && P.total != null ? `<section class="ig-card ig-card--flush sh-ref"><div class="sh-col__head"><span class="ig-tag-nonscore">참고용</span><b>${ref.length}</b><span>자료가 적거나 점수로 잘 안 갈리는 학부 — 합격 가능성 구간으로 나누지 않고 참고만 하세요</span></div><div class="sh-ref__list" tabindex="0" aria-label="참고용 학부 목록 ${ref.length}개">${ref.sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p).map(card).join('')}</div></section>` : '';
+    (rb || cols).querySelectorAll('[data-add]').forEach(b => b.onclick = () => toggleCmp(b.dataset.add, () => drawRec(P)));
     cols.querySelectorAll('[data-add]').forEach(b => b.onclick = () => toggleCmp(b.dataset.add, () => drawRec(P)));
   }
   function card(r) {
     const u = r.u, k = ukey(u), inC = cmp.includes(k), yk = yokoFor(u);
-    return `<article class="sh-rec">
+    return `<article class="sh-rec${r.weak ? ' sh-rec--ref' : ''}">
       <div class="sh-rec__top"><a class="sh-schoollink" href="${SH.hrefSchool ? SH.hrefSchool(u.s, u.f) : '#curve'}">${school(u)}</a>${addBtn(k, inC)}</div>
       <div class="ig-chance ig-chance--${ZK[r.z]}"><span class="ig-chance__bar"><i style="width:${Math.round(r.p * 100)}%"></i></span><span class="ig-chance__pct">${pct(r.p)}</span></div>
       <div class="sh-rec__meta"><span>반반 ${r.m ?? '—'}점</span><span>· ${SETLAB[u.set]} ${r.x}점</span>
-        ${r.weak ? '<span class="ig-tag-nonscore">점수 외 요소 큼</span>' : ''}${u.k === '일본어만' ? '<span class="ig-tag-nonscore">일본어만 지원자 기준</span>' : ''}${yk ? `<a class="ig-src" href="${yk.link}">모집요강</a>` : ''}
+        ${r.weak ? weakTag(u) : ''}${u.k === '일본어만' ? '<span class="ig-tag-nonscore">일본어만 지원자 기준</span>' : ''}${yk ? `<a class="ig-src" href="${yk.link}">모집요강</a>` : ''}
         <a href="#curve/${encodeURIComponent(k)}" class="ig-src">합격 곡선</a><a href="${SH.hrefSchool ? SH.hrefSchool(u.s, u.f) : '#curve'}" class="ig-src">합격생 점수대</a></div>
     </article>`;
   }
@@ -361,7 +368,7 @@
             ${row('지금 예측으로', it => !it.u ? '<span class="ig-zone ig-zone--ref">참고</span><span class="sh-sub">합격 곡선 없음 (지원자 데이터 부족)</span>' : it.r ? `<span class="sh-big">${pct(it.r.p)}</span>${zoneChip(it.r.z)}` : '<span class="ig-muted">이 학부가 보는 과목 점수가 없음</span>')}
             ${row('반반 점수', it => it.u ? `<b>${p50(it.u) != null ? p50(it.u) + '점' : '만점 넘음'}</b><span class="sh-sub">${SETLAB[it.u.set]} · ${it.u.r === '최고' ? '6·11월 중 높은 점수' : it.u.r}</span>` : none)}
             ${row('학생 비교 점수', it => it.r ? `${it.r.x}점` : none)}
-            ${row('최근 5년 데이터', it => it.u ? `${it.u.n}명 지원 · ${it.u.p}명 합격${weak(it.u) ? ' <span class="ig-tag-nonscore">점수 외 요소 큼</span>' : ''}` : none)}
+            ${row('최근 5년 데이터', it => it.u ? `${it.u.n}명 지원 · ${it.u.p}명 합격${weak(it.u) ? ' ' + weakTag(it.u) : ''}` : none)}
             ${grp('합격생 점수대', '최근 5년 · 실제 합격자 EJU (점 = 학생)')}
             ${row('합격자 점수대', it => { const r = schEval(it); return r && r.q ? `${SH.rangeBar(r.q, r.x != null ? Math.round(r.x) : null, r.set, true)}<span class="sh-sub">${SETLAB[r.set]} · 합격 ${r.st.ps} / 지원 ${r.st.ap}</span>` : none; })}
             ${row('내 위치', it => { const r = schEval(it); return r && r.v ? `<span class="ig-badge ${r.v.cls ? 'ig-badge--' + r.v.cls : ''}">${r.v.t}</span>` : none; })}
@@ -450,7 +457,7 @@
     const r = x != null ? evalUnit(u, P) : null;
     document.getElementById('cview').innerHTML = `
       <div class="ig-card__head"><div>${school(u)}<p class="ig-card__sub" style="margin-top:6px">${u.k} · 비교 점수 = ${SETLAB[u.set]} (${u.max}점 만점) · ${u.r === '최고' ? '6월·11월 중 높은 점수' : u.r + ' 점수'}</p></div>
-        <div class="ig-card__actions">${weak(u) ? '<span class="ig-tag-nonscore">점수 외 요소 큼</span>' : ''}${r ? zoneChip(r.z) : ''}${yk ? `<a class="ig-btn ig-btn--sm" href="${yk.link}">${icon('book')}모집요강 보기</a>` : ''}${addBtn(k, cmp.includes(k), 'cadd')}</div></div>
+        <div class="ig-card__actions">${weak(u) ? weakTag(u) : ''}${r ? zoneChip(r.z) : ''}${yk ? `<a class="ig-btn ig-btn--sm" href="${yk.link}">${icon('book')}모집요강 보기</a>` : ''}${addBtn(k, cmp.includes(k), 'cadd')}</div></div>
       <div class="ig-chart" id="cv"></div>
       <ul class="ig-legend"><li><i></i>합격 가능성 곡선 (올해 수준 보정)</li><li><i class="bin"></i>20점 구간 실제 합격 비율 · 원 크기 = 인원</li><li><i class="range"></i>${esc(S.name)} 예측 범위</li></ul>
       <dl class="ig-kv" style="margin-top:16px"><div><dt>학습 인원 (합격)</dt><dd>${u.n}명 (${u.p}명)</dd></div><div><dt>최근 2년</dt><dd>${u.recent}명</dd></div><div><dt>반반 점수</dt><dd>${m != null ? m + '점' : '만점 넘음'}</dd></div><div><dt>구별력 (AUC)</dt><dd>${u.auc.toFixed(2)}<small>${u.auc < .65 ? '점수만으로 잘 갈리지 않음' : '점수로 잘 갈림'}</small></dd></div></dl>

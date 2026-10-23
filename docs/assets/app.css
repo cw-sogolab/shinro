@@ -302,3 +302,8 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-gate__title { margin: var(--space-2) 0 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -0.01em; }
 .sh-gate__desc { margin: 0; color: var(--ink-muted); font-size: 14px; line-height: 22px; }
 #gmsg:empty { display: none; }
+
+/* 참고용 학부 (자료가 적거나 점수로 잘 안 갈림) — 구간 색 없이 흐리게 */
+.sh-ref .sh-col__head{gap:8px}
+.sh-ref__list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));max-height:460px;overflow:auto}
+.sh-rec--ref .ig-chance{opacity:.5;filter:grayscale(1)}
