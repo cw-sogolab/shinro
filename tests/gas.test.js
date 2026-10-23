@@ -5,6 +5,7 @@ function t(name, fn) { try { fn(); passed++; console.log('  ok  ' + name); } cat
 const norm = s => String(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
 const H = c => crypto.createHash('sha256').update('shinro|' + norm(c)).digest('hex');
 const CODE_A = 'ABCD-EFGH-JKLM', CODE_B = 'WXYZ-2345-6789';
+const reads = { n: 0 };
 function load(files) {
   const props = { DATA_FOLDER_ID: 'F1', CODE_HASHES: [H(CODE_A), H(CODE_B)].join(',') }, cache = {};
   const sb = {
@@ -17,7 +18,7 @@ function load(files) {
       computeDigest: (a, s) => Array.from(crypto.createHash('sha256').update(s).digest()).map(x => (x > 127 ? x - 256 : x)),
       newBlob: s => ({ bytes: Buffer.from(s) }), gzip: b => ({ getBytes: () => zlib.gzipSync(b.bytes) }), base64Encode: b => Buffer.from(b).toString('base64'),
     },
-    DriveApp: (() => { const folder = { getName: () => '진학상담_데이터', getFilesByName: n => { const has = n in files; let u = false; return { hasNext: () => has && !u, next: () => { u = true; return { getBlob: () => ({ getDataAsString: () => files[n] }), getSize: () => files[n].length }; } }; } };
+    DriveApp: (() => { const folder = { getName: () => '진학상담_데이터', getFilesByName: n => { const has = n in files; let u = false; return { hasNext: () => has && !u, next: () => { u = true; return { getBlob: () => { reads.n++; return { getDataAsString: () => files[n] }; }, getSize: () => files[n].length, getLastUpdated: () => ({ getTime: () => 1 }) }; } }; } };
       return { getFolderById: id => { assert.strictEqual(id, 'F1'); return folder; }, getFoldersByName: nm => { let u = false; const ok = nm === '진학상담_데이터' && !props.DATA_FOLDER_ID; return { hasNext: () => ok && !u, next: () => { u = true; return folder; } }; } }; })(),
     Logger: { log() {} },
   };
@@ -54,6 +55,12 @@ t('폴더에 파일이 빠지면 서버 오류로 알려 줌(코드는 맞음)',
   const g = load(files); const r = g.call('data', { code: CODE_A }); assert.strictEqual(r.ok, false); assert.strictEqual(r.error, 'server'); assert.ok(/model\.js/.test(r.msg));
 });
 t('폴더 ID 속성이 없으면 이름(진학상담_데이터)으로 찾음', () => { const g = mk(); delete g.props.DATA_FOLDER_ID; assert.strictEqual(g.call('data', { code: CODE_A }).ok, true); });
+t('두 번째 요청은 드라이브 내용을 다시 읽지 않고 캐시로 답함 ', () => {
+  const g = mk(); reads.n = 0;
+  const a = g.call('data', { code: CODE_A }); const first = reads.n; assert.strictEqual(first, 9);
+  const b = g.call('data', { code: CODE_A }); assert.strictEqual(reads.n, first, '캐시'); assert.strictEqual(b.gz, a.gz);
+  assert.ok(Object.keys(g.cache).length > 1);
+});
 t('모르는 action·깨진 요청', () => { const g = mk(); assert.strictEqual(g.call('dump', { code: CODE_A }).error, 'unknown'); assert.strictEqual(JSON.parse(g.sb.doPost({ postData: { contents: '{' } }).s).error, 'bad_request'); });
 t('속성이 비어 있으면(CODE_HASHES 없음) 아무 코드도 안 열림', () => { const g = mk(); g.props.CODE_HASHES = ''; assert.strictEqual(g.call('check', { code: CODE_A }).error, 'bad'); });
 console.log(passed + '개 통과');

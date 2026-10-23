@@ -57,16 +57,45 @@ function folder_() {
   return it.next();
 }
 
-/** 폴더의 데이터 js 를 읽어 {order, files} 를 gzip+base64 로 내려 줌 (4MB → 1.7MB 정도) */
+/** 폴더의 데이터 js 를 읽어 gzip+base64 문자열로 만든다. 만든 결과는 6시간 캐시 (파일이 바뀌면 키가 달라져 새로 만듦) */
+var CHUNK = 90000, TTL = 21600;
 function readAll_() {
-  var folder = folder_(), files = {};
+  var folder = folder_(), blobs = {}, sig = [];
   DATA_NAMES.forEach(function (n) {
     var it = folder.getFilesByName(n + '.js');
     if (!it.hasNext()) throw new Error(n + '.js 가 폴더에 없습니다');
-    files[n] = it.next().getBlob().getDataAsString('UTF-8');
+    var f = it.next();
+    blobs[n] = f;
+    sig.push(n + ':' + f.getLastUpdated().getTime() + ':' + f.getSize());
   });
-  var blob = Utilities.gzip(Utilities.newBlob(JSON.stringify({ order: DATA_NAMES, files: files }), 'application/json', 'd.json'));
-  return { ok: true, ver: VER, gz: Utilities.base64Encode(blob.getBytes()) };
+  var cache = CacheService.getScriptCache();
+  var key = 'bd_' + Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, sig.join('|'), Utilities.Charset.UTF_8)
+    .map(function (x) { return ('0' + (x & 0xff).toString(16)).slice(-2); }).join('').slice(0, 20);
+  var gz = fromCache_(cache, key);
+  if (!gz) {
+    var files = {};
+    DATA_NAMES.forEach(function (n) { files[n] = blobs[n].getBlob().getDataAsString('UTF-8'); });
+    var blob = Utilities.gzip(Utilities.newBlob(JSON.stringify({ order: DATA_NAMES, files: files }), 'application/json', 'd.json'));
+    gz = Utilities.base64Encode(blob.getBytes());
+    toCache_(cache, key, gz);
+  }
+  return { ok: true, ver: VER, gz: gz };
+}
+function fromCache_(cache, key) {
+  try {
+    var n = Number(cache.get(key + '_n') || 0);
+    if (!n) return null;
+    var parts = [];
+    for (var i = 0; i < n; i++) { var v = cache.get(key + '_' + i); if (v == null) return null; parts.push(v); }
+    return parts.join('');
+  } catch (e) { return null; }
+}
+function toCache_(cache, key, text) {
+  try {
+    var n = Math.ceil(text.length / CHUNK);
+    for (var i = 0; i < n; i++) cache.put(key + '_' + i, text.substr(i * CHUNK, CHUNK), TTL);
+    cache.put(key + '_n', String(n), TTL);
+  } catch (e) { /* 캐시가 안 되어도 응답은 나감 */ }
 }
 
 /** 편집기에서 직접 실행해 보는 점검: 폴더·파일·코드 개수 */
