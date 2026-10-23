@@ -135,7 +135,7 @@
     const top = Math.min(u.max, SETCAP[u.set] || u.max);   // 실제로 나올 수 없는 점수(예: 일본어 374 위)는 계산에서 뺀다
     return zs.reduce((acc, z, i) => acc + w[i] * f(Math.min(top, Math.max(0, x + z * sd))), 0) / W;
   }
-  const p50 = u => { const v = (-u.a - C.shift) / u.b; return v >= 0 && v <= u.max ? Math.round(v) : null; };
+  const p50 = u => { const v = (-u.a - C.shift) / u.b; return v >= 0 && v <= Math.min(u.max, SETCAP[u.set] || u.max) ? Math.round(v) : null; };   // 실제 최고점(예: 일본어+종합+수학1 774)을 넘으면 「만점 넘음」
   const weak = u => u.auc < .65 || p50(u) == null;
   function evalUnit(u, pred) {
     const x = setScore(pred, u.set); if (x == null) return null;
