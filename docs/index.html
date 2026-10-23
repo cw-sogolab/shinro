@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>진학 상담</title>
+<!-- 디자인 시스템: ../design (tokens → components → ilgong.js). 값은 거기서 고친다. app.css는 배치와 포인트 색(빨강=선택·현재 위치) 덮어쓰기만. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../design/tokens.css">
+<link rel="stylesheet" href="../design/components.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="sh-locked">
+<div class="ig-band ig-band--demo">데모 · 가상 학생 · 학원 내부용 · 학생 이름·점수는 이 브라우저에만 저장됩니다</div>
+<header class="ig-appbar">
+  <div class="ig-appbar__in">
+    <a class="ig-appbar__brand" href="#home" data-t="home">
+      <img class="ig-logo ig-logo--light" src="../design/assets/ilgong-logo.png" alt="일공학원">
+      <img class="ig-logo ig-logo--dark" src="../design/assets/ilgong-logo-reverse.png" alt="일공학원">
+      <span class="ig-appbar__product">진학 상담</span>
+    </a>
+    <nav class="ig-appbar__nav" aria-label="메뉴">
+      <a href="#home" data-t="home"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-home"/></svg>홈</a>
+      <a href="#find" data-t="find"><span class="sh-navno">1</span>학교 찾기</a>
+      <a href="#pred" data-t="pred"><span class="sh-navno">2</span>예측·추천</a>
+      <a href="#yoko" data-t="yoko"><span class="sh-navno">3</span>모집요강</a>
+      <a href="#cmp" data-t="cmp"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-school"/></svg>비교 <span class="ig-count" id="cmpCnt" hidden></span></a>
+      <a href="#mock" data-t="mock"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-file"/></svg>모의고사</a>
+      <a href="#score" data-t="score"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-chart"/></svg>채점 비교</a>
+      <a href="#how" data-t="how"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-info"/></svg>계산 방법</a>
+    </nav>
+    <div class="sh-appsearch">
+      <label class="ig-field"><span class="ig-sr">학교·학부 검색</span><span class="ig-field__control"><svg class="ig-icon" aria-hidden="true"><use href="#ig-search"/></svg><input class="ig-input" id="aq" type="search" placeholder="학교·학부 (한/日)" autocomplete="off"></span></label>
+      <div class="sh-sugg sh-pop" id="asugg" role="listbox" hidden></div>
+    </div>
+  </div>
+</header>
+<main class="ig-main" id="app"></main>
+<footer class="ig-foot" id="foot"></footer>
+<script src="../design/ilgong.js"></script>
+<!-- 데이터는 저장소에 없다(구글 드라이브). lock.js 가 접속 코드를 Apps Script 웹앱에 보내 받고, app.js · view-*.js 를 읽는다. 설정은 config.js. (?dev 를 붙이면 평문 데이터로 바로 열림) -->
+<script src="assets/config.js"></script>
+<script src="assets/lock.js"></script>
+</body>
+</html>

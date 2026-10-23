@@ -1,0 +1,22 @@
+# 데이터는 공개 저장소에 올리지 않는다 (CLAUDE.md 4절)
+data/yoko/
+docs/assets/curves.js
+docs/assets/mock.js
+docs/assets/yoko.js
+docs/assets/students.js
+_logo_tmp/
+__pycache__/
+.DS_Store
+docs/assets/schools.js
+docs/assets/yoko_ja.js
+.work/
+dist/
+
+# 평문 데이터는 저장소에 없다 — 선생님 구글 드라이브 「진학상담_데이터」 폴더에 있고, 화면이 Apps Script 를 거쳐 읽는다
+docs/assets/model.js
+docs/assets/names_ko.js
+docs/assets/yoko_files.js
+docs/assets/scoring.js
+.secret/
+CLAUDE.md
+계산방법_원장님설명.md

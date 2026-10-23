@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상담 요약 A4 — 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<script src="ilgong.js"></script>
+</head>
+<body>
+<div class="ig-noprint" style="max-width:794px;margin:16px auto;display:flex;justify-content:flex-end"><button class="ig-btn ig-btn--primary" onclick="print()"><svg class="ig-icon ig-icon--sm" aria-hidden="true"><use href="#ig-print"/></svg>인쇄</button></div><div class="ig-sheet-wrap" style="padding:0 0 24px"><article class="ig-sheet" aria-label="상담 요약 A4">
+<div class="ig-sheet__head"><div><h1>상담 요약 · 김하늘</h1><div style="font-size:12px;color:#4a4a47">2026년 10월 22일 · 문과 · 담당 현채원</div></div><img class="ig-logo--light" src="assets/ilgong-logo.png" alt="일공학원"></div>
+<section><h2>1. 성적 추이 (문과 총점)</h2><div class="ig-chart" id="ptrend"></div><div style="font-size:11px;color:#4a4a47">실선 본인 · 점선 반 평균 · 빗금 예측 범위</div></section>
+<section><h2>2. 11월 EJU 예측</h2><table><thead><tr><th>과목</th><th class="num">예상</th><th class="num">보통 범위</th></tr></thead><tbody><tr><td>문과 총점</td><td class="num"><b>612</b></td><td class="num">580~645</td></tr><tr><td>일본어</td><td class="num">318</td><td class="num">296~340</td></tr><tr><td>종합과목</td><td class="num">152</td><td class="num">138~166</td></tr><tr><td>수학 코스1</td><td class="num">142</td><td class="num">130~154</td></tr></tbody></table></section>
+<section><h2>3. 추천 학교 (합격 가능성 = 과거 비슷한 점수 지원자 중 합격 비율)</h2><table><thead><tr><th>구간</th><th>학교·학부</th><th class="num">합격 가능성</th><th>비고</th></tr></thead><tbody>
+<tr><td><span class="ig-zone ig-zone--safe">안정</span></td><td>메이지대학 정치경제학부</td><td class="num">90%+</td><td>희망 1</td></tr><tr><td><span class="ig-zone ig-zone--safe">안정</span></td><td>호세이대학 경영학부</td><td class="num">82%</td><td></td></tr><tr><td><span class="ig-zone ig-zone--fit">적정</span></td><td>아오야마가쿠인대학 경영학부</td><td class="num">61%</td><td>희망 2</td></tr><tr><td><span class="ig-zone ig-zone--try">도전</span></td><td>와세다대학 상학부</td><td class="num">33%</td><td>희망 3</td></tr><tr><td><span class="ig-zone ig-zone--try">도전</span></td><td>히토쓰바시대학 상학부</td><td class="num">18%</td><td>점수 외 요소 큼</td></tr></tbody></table></section>
+<section><h2>4. 지원 건과 마감</h2><table><thead><tr><th>학교·학부</th><th>단계</th><th>마감</th></tr></thead><tbody><tr><td>메이지 정치경제</td><td>3/9 서류 준비 (2/7)</td><td>10월 28일 소인 유효</td></tr><tr><td>호세이 경영</td><td>4/9 지망이유서</td><td>11월 11일 필착</td></tr><tr><td>리쓰메이칸 경영</td><td>5/9 출원 완료</td><td>1차 발표 11월 2일</td></tr><tr><td>아오야마 경영</td><td>2/9 확정</td><td>12월 5일 필착</td></tr></tbody></table></section>
+<section><h2>5. 상담 메모</h2><p style="margin:0">지망이유서 2차 첨삭 완료. 메이지 서류(졸업·성적증명서)는 10월 26일까지 학원 제출.</p></section>
+<div class="ig-sheet__foot">참고용 · 합격을 보장하지 않음 · 최종 판단은 상담 강사와 함께 합니다. 예측 점수는 범위로 보며, 합격 가능성은 과거 비슷한 점수 지원자 중 합격한 비율입니다. 마감일의 최종 기준은 각 학교 공식 모집요강입니다. · 일공학원</div>
+</article></div>
+<script>Ilgong.sprite&&document.readyState!=='loading'?0:0;Ilgong.trendChart(document.getElementById('ptrend'),{labels:['모의 1회','모의 2회','6월 EJU','모의 3회','모의 4회','11월 EJU'],me:[548,566,589,597,604,null],avg:[520,531,552,556,561,null],pred:{i:5,point:612,lo:580,hi:645},height:190,min:450,max:700,label:'문과 총점 추이: 모의 1회 548점에서 모의 4회 604점, 11월 EJU 예측 612점(보통 580~645)'});</script>
+</body>
+</html>

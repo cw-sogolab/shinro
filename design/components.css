@@ -1,0 +1,432 @@
+/* 일공학원 진학 상담 — components.css
+ * 순수 CSS. 색·간격·모서리·그림자는 전부 tokens.css 변수만 쓴다. 클래스 접두사 ig-.
+ * 검정이 구조, 빨강은 '지금 손대야 할 것'. 구간(안정·적정·도전)은 색 + 글자 + 모양. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--font-sans); font-size: 14px; line-height: 22px; letter-spacing: -0.005em; background: var(--canvas); color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--link); }
+[hidden] { display: none !important; }
+.ig-num { font-variant-numeric: tabular-nums; }
+.ig-jp { font-family: var(--font-jp); }
+.ig-muted { color: var(--ink-muted); }
+.ig-sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; padding: 0; }
+.ig-icon { width: 20px; height: 20px; flex: none; display: inline-block; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ig-icon--sm { width: 16px; height: 16px; }
+.ig-icon--xs { width: 14px; height: 14px; }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid transparent; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+/* ---------- 앱 바 · 띠 · 본문 ---------- */
+.ig-band { display: flex; justify-content: center; gap: var(--space-2); padding: 6px var(--space-4); font-size: 12px; line-height: 16px; font-weight: 600; text-align: center; }
+.ig-band--dev { background: var(--band-dev); color: var(--on-band-dev); }
+.ig-band--demo { background: repeating-linear-gradient(-45deg, var(--warning-soft) 0 10px, var(--surface) 10px 20px); color: var(--warning); border-bottom: 1px solid var(--line); }
+.ig-appbar { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+.ig-appbar__in { display: flex; align-items: center; gap: var(--space-6); max-width: var(--content-max); min-height: var(--appbar-height); margin: 0 auto; padding: 0 var(--space-6); }
+.ig-appbar__brand { display: flex; align-items: center; gap: var(--space-3); color: var(--ink); text-decoration: none; flex: none; min-height: var(--touch-min); }
+.ig-appbar__brand img { display: block; height: 22px; width: auto; }
+.ig-appbar__product { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; padding-left: var(--space-3); border-left: 1px solid var(--line); }
+.ig-appbar__nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.ig-appbar__nav::-webkit-scrollbar { display: none; }
+.ig-appbar__nav a { display: inline-flex; align-items: center; gap: 6px; min-height: var(--touch-min); padding: 0 var(--space-3); border-radius: var(--radius-md); color: var(--ink-muted); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ig-appbar__nav a:hover { color: var(--ink); background: var(--surface-hover); }
+.ig-appbar__nav a[aria-current="page"] { color: var(--on-inverse); background: var(--inverse); }
+.ig-appbar__user { display: flex; align-items: center; gap: var(--space-2); flex: none; font-size: 13px; color: var(--ink-muted); }
+.ig-appbar__user b { color: var(--ink); font-weight: 600; }
+.ig-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--radius-full); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--surface-muted); color: var(--ink-muted); }
+.ig-count--alert { background: var(--brand); color: var(--on-brand); }
+[aria-current="page"] .ig-count:not(.ig-count--alert) { background: transparent; color: var(--on-inverse); box-shadow: inset 0 0 0 1px var(--on-inverse-muted); }
+.ig-main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); display: flex; flex-direction: column; gap: var(--space-6); }
+.ig-foot { max-width: var(--content-max); margin: 0 auto; padding: var(--space-4) var(--space-6) var(--space-8); font-size: 12px; line-height: 18px; color: var(--ink-muted); }
+@media (max-width: 760px) {
+  .ig-appbar__in { flex-wrap: wrap; gap: 0 var(--space-3); padding: 0 var(--space-4); }
+  .ig-appbar__nav { order: 3; flex-basis: 100%; margin: 0 calc(var(--space-4) * -1); padding: 0 var(--space-3) var(--space-1); }
+  .ig-appbar__user { margin-left: auto; }
+  .ig-appbar__user span { display: none; }
+  .ig-main { padding: var(--space-5) var(--space-4) var(--space-8); gap: var(--space-4); }
+}
+
+/* ---------- 페이지 제목 ---------- */
+.ig-pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4) var(--space-6); flex-wrap: wrap; }
+.ig-pagehead__eyebrow { margin: 0 0 var(--space-1); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink-muted); }
+.ig-pagehead__title { margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -0.015em; }
+.ig-pagehead__desc { margin: var(--space-1) 0 0; color: var(--ink-muted); }
+.ig-pagehead__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* ---------- 카드 ---------- */
+.ig-card { background: var(--surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); padding: var(--space-5); min-width: 0; }
+.ig-card--flush { padding: 0; overflow: hidden; }
+.ig-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3) var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-4); }
+.ig-card--flush > .ig-card__head { padding: var(--space-5) var(--space-5) 0; }
+.ig-card__title { margin: 0; font-size: 18px; line-height: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.ig-card__sub { margin: 2px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-muted); }
+.ig-card__actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ig-card__foot { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.ig-card--flush > .ig-card__foot { margin: 0; padding: var(--space-3) var(--space-5) var(--space-4); }
+.ig-grid { display: grid; gap: var(--space-4); }
+.ig-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ig-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ig-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ig-grid--main { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 880px) { .ig-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ig-grid--3, .ig-grid--main { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .ig-grid--2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- 버튼 ---------- */
+.ig-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-md); padding: 0 var(--space-4); border-radius: var(--radius-md); border: 1px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; text-decoration: none; cursor: pointer; transition: background-color .12s, border-color .12s; background: var(--surface); color: var(--ink); border-color: var(--control-border); }
+.ig-btn:hover { background: var(--surface-hover); }
+.ig-btn--primary { background: var(--inverse); border-color: var(--inverse); color: var(--on-inverse); }
+.ig-btn--primary:hover { background: var(--ink-muted); border-color: var(--ink-muted); }
+.ig-btn--ghost { background: transparent; border-color: transparent; color: var(--ink); }
+.ig-btn--ghost:hover { background: var(--surface-muted); }
+.ig-btn--danger { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.ig-btn--danger:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+.ig-btn--sm { min-height: var(--control-sm); padding: 0 var(--space-3); border-radius: var(--radius-sm); font-size: 13px; gap: 6px; }
+.ig-btn--icon { width: var(--control-md); padding: 0; }
+.ig-btn--sm.ig-btn--icon { width: var(--control-sm); }
+.ig-btn--block { display: flex; width: 100%; }
+.ig-btn:disabled, .ig-btn[aria-disabled="true"] { background: var(--surface-muted); border-color: transparent; color: var(--ink-subtle); cursor: not-allowed; }
+@media (pointer: coarse) { .ig-btn--sm { min-height: var(--touch-min); } .ig-btn--sm.ig-btn--icon { width: var(--touch-min); } }
+
+/* ---------- 입력 · 셀렉트 · 세그먼트 · 탭 ---------- */
+.ig-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ig-field__label { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--ink-muted); }
+.ig-field__control { position: relative; display: flex; align-items: center; }
+.ig-input { width: 100%; min-height: var(--control-md); padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--control-border); background: var(--surface); color: var(--ink); font-size: 16px; }
+textarea.ig-input { padding: 10px var(--space-3); min-height: 88px; line-height: 22px; resize: vertical; }
+.ig-input::placeholder { color: var(--ink-subtle); }
+.ig-input:hover { border-color: var(--ink-muted); }
+.ig-input:focus-visible { border-color: var(--ink); }
+.ig-field__control > .ig-icon { position: absolute; left: var(--space-3); color: var(--ink-muted); pointer-events: none; }
+.ig-field__control > .ig-icon + .ig-input { padding-left: 40px; }
+select.ig-input { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%); background-position: right 18px center, right 13px center; background-size: 5px 5px; background-repeat: no-repeat; }
+.ig-field__msg { margin: 0; display: flex; align-items: center; gap: var(--space-1); font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink-muted); }
+.ig-field--error .ig-input { border-color: var(--danger); }
+.ig-field--error .ig-field__msg { color: var(--danger); }
+.ig-seg { display: inline-flex; gap: 2px; padding: 4px; border-radius: var(--radius-lg); background: var(--surface-muted); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ig-seg button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink-muted); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ig-seg button:hover { color: var(--ink); }
+.ig-seg button[aria-pressed="true"], .ig-seg button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-card); }
+@media (pointer: coarse) { .ig-seg button { min-height: var(--touch-min); } }
+.ig-tabs { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.ig-tabs [role="tab"] { min-height: var(--touch-min); padding: 0 var(--space-3); border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; color: var(--ink-muted); font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.ig-tabs [role="tab"]:hover { color: var(--ink); }
+.ig-tabs [role="tab"][aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ---------- 배지 · 칩 ---------- */
+.ig-badge { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 9px; border-radius: var(--radius-full); font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; background: var(--surface-muted); color: var(--ink-muted); vertical-align: middle; }
+.ig-badge--success { background: var(--success-soft); color: var(--success); }
+.ig-badge--warning { background: var(--warning-soft); color: var(--warning); }
+.ig-badge--danger { background: var(--danger-soft); color: var(--danger); }
+.ig-badge--info { background: var(--info-soft); color: var(--info); }
+.ig-badge--inverse { background: var(--inverse); color: var(--on-inverse); }
+.ig-badge--outline { background: transparent; box-shadow: inset 0 0 0 1px var(--control-border); color: var(--ink-muted); }
+/* 구간: 색 + 글자 + 모양(꽉 찬 원 / 반원 / 빈 원). 흑백 인쇄에서도 모양으로 구분된다. */
+.ig-zone { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 0 10px 0 8px; border-radius: var(--radius-full); font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; vertical-align: middle; }
+.ig-zone::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+.ig-zone--safe { background: var(--zone-safe-soft); color: var(--zone-safe); }
+.ig-zone--safe::before { background: currentColor; }
+.ig-zone--fit { background: var(--zone-fit-soft); color: var(--zone-fit); }
+.ig-zone--fit::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.ig-zone--try { background: var(--zone-try-soft); color: var(--zone-try); }
+.ig-zone--ref { background: var(--surface-muted); color: var(--zone-ref); }
+.ig-zone--ref::before { border-style: dashed; }
+.ig-tag-nonscore { display: inline-flex; align-items: center; gap: 4px; min-height: 22px; padding: 0 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; color: var(--zone-ref); box-shadow: inset 0 0 0 1px var(--line); white-space: nowrap; }
+/* D-day: 7일 이내만 강하게 */
+.ig-dday { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 56px; min-height: 26px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ig-dday--d7 { background: var(--brand); color: var(--on-brand); }
+.ig-dday--d30 { background: var(--warning-soft); color: var(--warning); }
+.ig-dday--open { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.ig-dday--later { background: var(--surface-muted); color: var(--ink-muted); }
+.ig-dday--past { background: transparent; color: var(--ink-subtle); text-decoration: line-through; box-shadow: inset 0 0 0 1px var(--line); }
+/* 서류 구분 */
+.ig-req { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.ig-req--must { background: var(--inverse); color: var(--on-inverse); }
+.ig-req--partial { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.ig-req--cond { background: var(--info-soft); color: var(--info); }
+.ig-req--opt { color: var(--ink-muted); box-shadow: inset 0 0 0 1px var(--control-border); border-radius: var(--radius-sm); background-image: none; outline: 1px dashed transparent; }
+/* 모집요강 출처 표시 */
+.ig-src { display: inline-flex; align-items: center; gap: 3px; min-height: 24px; font-size: 12px; font-weight: 600; color: var(--link); text-decoration: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ig-src:hover { text-decoration: underline; }
+.ig-verify { display: inline-flex; align-items: center; gap: 4px; min-height: 22px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; color: var(--warning); background: var(--warning-soft); outline: 1px dashed var(--warning); outline-offset: -1px; white-space: nowrap; }
+.ig-kr { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; background: var(--kr-soft); color: var(--kr); white-space: nowrap; }
+.ig-krnote { margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--kr-soft); color: var(--ink); font-size: 13px; line-height: 20px; }
+.ig-krnote b { color: var(--kr); margin-right: 6px; }
+
+/* ---------- 주의 링 (로고의 O, 선 두께 = 지름의 1/5) ---------- */
+.ig-ring { display: inline-block; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--brand); vertical-align: middle; }
+.ig-ring--sm { width: 12px; height: 12px; border-width: 2.5px; }
+.ig-ring--lg { width: 24px; height: 24px; border-width: 5px; }
+.ig-ring--xl { width: 40px; height: 40px; border-width: 8px; }
+.ig-ring--on-inverse { border-color: var(--brand-on-inverse); }
+
+/* ---------- 고정 안내 문구 ---------- */
+.ig-disclaimer { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 12px; line-height: 18px; color: var(--ink-muted); }
+.ig-disclaimer .ig-icon { margin-top: 1px; }
+
+/* ---------- 숫자 ---------- */
+.ig-stat { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-5); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-card); min-width: 0; }
+.ig-stat__label { display: flex; align-items: center; gap: var(--space-2); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink-muted); }
+.ig-stat__label .ig-ring { margin-left: auto; }
+.ig-stat__value { display: flex; align-items: baseline; gap: 3px; font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ig-stat__value small { font-size: 15px; font-weight: 600; color: var(--ink-muted); letter-spacing: 0; }
+.ig-stat__foot { font-size: 12px; line-height: 16px; color: var(--ink-muted); font-weight: 500; }
+.ig-stat--inverse { background: var(--inverse); color: var(--on-inverse); box-shadow: none; }
+.ig-stat--inverse .ig-stat__label, .ig-stat--inverse .ig-stat__value small, .ig-stat--inverse .ig-stat__foot { color: var(--on-inverse-muted); }
+.ig-stat--alert .ig-stat__value { color: var(--danger); }
+/* 예측 점수 = 점 + 범위. 점 하나만 단독으로 쓰지 않는다. */
+.ig-pred { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ig-pred__label { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink-muted); }
+.ig-pred__value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px var(--space-2); font-variant-numeric: tabular-nums; }
+.ig-pred__value b { font-size: 32px; line-height: 38px; font-weight: 700; letter-spacing: -0.02em; }
+.ig-pred__value span { font-size: 14px; font-weight: 600; color: var(--ink-muted); }
+.ig-pred__track { position: relative; height: 24px; }
+.ig-pred__track::before { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: var(--line); border-radius: 1px; }
+.ig-pred__range { position: absolute; top: 6px; height: 12px; border-radius: var(--radius-full); background: var(--pred-band); box-shadow: inset 0 0 0 1px var(--control-border); }
+.ig-pred__point { position: absolute; top: 4px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--me); box-shadow: 0 0 0 3px var(--surface); }
+.ig-pred__scale { display: flex; justify-content: space-between; font-size: 11px; line-height: 14px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.ig-pred--soft .ig-pred__value b { font-size: 24px; line-height: 30px; }
+.ig-pred--soft .ig-pred__range { background: var(--info-soft); box-shadow: inset 0 0 0 1px var(--info); }
+.ig-pred--soft .ig-pred__point { width: 10px; height: 10px; margin-left: -5px; top: 7px; background: var(--info); }
+/* 합격 가능성 막대 */
+.ig-chance { display: flex; align-items: center; gap: var(--space-2); min-width: 120px; }
+.ig-chance__bar { flex: 1; height: 8px; border-radius: var(--radius-full); background: var(--chart-track); overflow: hidden; min-width: 60px; }
+.ig-chance__bar i { display: block; height: 100%; border-radius: var(--radius-full); background: var(--ink); }
+.ig-chance--safe .ig-chance__bar i { background: var(--zone-safe); }
+.ig-chance--fit .ig-chance__bar i { background: var(--zone-fit); }
+.ig-chance--try .ig-chance__bar i { background: var(--zone-try); }
+.ig-chance__pct { min-width: 42px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ig-progress { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ig-progress__row { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 13px; line-height: 18px; }
+.ig-progress__row span:last-child { color: var(--ink-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ig-progress__track { height: 8px; border-radius: var(--radius-full); background: var(--chart-track); overflow: hidden; }
+.ig-progress__track i { display: block; height: 100%; border-radius: var(--radius-full); background: var(--ink); }
+.ig-progress--done .ig-progress__track i { background: var(--success); }
+.ig-progress--behind .ig-progress__track i { background: var(--brand); }
+
+/* ---------- 표 ---------- */
+.ig-table-wrap { position: relative; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ig-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+.ig-table th { height: 40px; padding: 0 var(--space-4); background: var(--surface-hover); color: var(--ink-muted); font-size: 12px; font-weight: 600; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.ig-table td { height: var(--row-height); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--line); vertical-align: middle; background: var(--surface); }
+.ig-table tbody tr:last-child td { border-bottom: 0; }
+.ig-table tbody tr:hover td { background: var(--surface-hover); }
+.ig-table .num, .ig-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ig-table--sticky th:first-child, .ig-table--sticky td:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--line); }
+.ig-table--sticky th:first-child { z-index: 2; }
+.ig-table--sticky td:first-child { min-width: 168px; }
+.ig-table tr.is-behind td:first-child { box-shadow: inset 3px 0 0 var(--brand), 1px 0 0 var(--line); }
+.ig-table__group td { height: 40px; background: var(--canvas); font-weight: 700; }
+.ig-table__group td .ig-muted { font-weight: 500; font-size: 12px; margin-left: var(--space-2); }
+.ig-school { display: flex; flex-direction: column; min-width: 0; }
+.ig-school b { font-weight: 600; }
+.ig-school .ig-jp { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+
+/* ---------- 빈 상태 · 토스트 · 대화상자 ---------- */
+.ig-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-10) var(--space-5); text-align: center; color: var(--ink-muted); }
+.ig-empty .ig-icon { width: 32px; height: 32px; color: var(--ink-subtle); }
+.ig-empty b { color: var(--ink); font-size: 15px; }
+.ig-empty p { margin: 0; max-width: 36ch; font-size: 13px; line-height: 20px; }
+.ig-toasts { position: fixed; left: 50%; bottom: max(var(--space-6), env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; flex-direction: column; gap: var(--space-2); z-index: 60; width: min(420px, calc(100vw - 32px)); }
+.ig-toast { display: flex; align-items: center; gap: var(--space-3); min-height: 48px; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--inverse); color: var(--on-inverse); box-shadow: var(--shadow-pop); font-size: 14px; font-weight: 500; }
+.ig-toast .ig-btn { margin-left: auto; min-height: 32px; background: transparent; border-color: transparent; color: var(--on-inverse); text-decoration: underline; padding: 0 var(--space-2); }
+.ig-toast--error .ig-icon { color: var(--brand-on-inverse); }
+.ig-dialog { width: min(440px, calc(100vw - 32px)); padding: var(--space-6); border: 0; border-radius: var(--radius-xl); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-pop); }
+.ig-dialog::backdrop { background: rgb(17 17 17 / .45); }
+.ig-dialog h2 { margin: 0 0 var(--space-2); font-size: 18px; line-height: 26px; }
+.ig-dialog p { margin: 0; color: var(--ink-muted); }
+.ig-dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-6); flex-wrap: wrap; }
+
+/* ---------- 차트 (SVG, 라이브러리 없음) ---------- */
+.ig-chart { width: 100%; }
+.ig-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ig-chart text { font-family: var(--font-sans); font-size: 11px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.ig-chart .grid { stroke: var(--line); stroke-width: 1; }
+.ig-chart .axis { stroke: var(--control-border); stroke-width: 1; }
+.ig-chart .me { fill: none; stroke: var(--me); stroke-width: 2.5; }
+.ig-chart .me-dot { fill: var(--me); stroke: var(--surface); stroke-width: 2; }
+.ig-chart .avg { fill: none; stroke: var(--avg); stroke-width: 2; stroke-dasharray: 5 4; }
+.ig-chart .avg-dot { fill: var(--surface); stroke: var(--avg); stroke-width: 2; }
+.ig-chart .pred-band { fill: var(--pred-band); }
+.ig-chart .pred-whisker { stroke: var(--me); stroke-width: 2; }
+.ig-chart .pred-dot { fill: var(--surface); stroke: var(--me); stroke-width: 2.5; }
+.ig-chart .pred-line { fill: none; stroke: var(--me); stroke-width: 2; stroke-dasharray: 2 4; }
+.ig-chart .band-safe { fill: var(--zone-safe-soft); }
+.ig-chart .band-fit { fill: var(--zone-fit-soft); }
+.ig-chart .band-try { fill: var(--zone-try-soft); }
+.ig-chart .band-label { font-weight: 700; font-size: 11px; }
+.ig-chart .band-label.safe { fill: var(--zone-safe); } .ig-chart .band-label.fit { fill: var(--zone-fit); } .ig-chart .band-label.try { fill: var(--zone-try); }
+.ig-chart .curve { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+.ig-chart .bin { fill: var(--ink); fill-opacity: .14; stroke: var(--ink-muted); stroke-width: 1; }
+.ig-chart .you-range { fill: var(--ink); fill-opacity: .06; }
+.ig-chart .you { stroke: var(--ink); stroke-width: 1.5; }
+.ig-chart .you-dot { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+.ig-chart .you-label { fill: var(--ink); font-weight: 700; font-size: 12px; }
+.ig-legend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: var(--space-2) 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--ink-muted); }
+.ig-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.ig-legend i { display: inline-block; width: 18px; border-top: 2.5px solid var(--me); }
+.ig-legend i.avg { border-top: 2px dashed var(--avg); }
+.ig-legend i.range { height: 10px; border: 0; border-radius: var(--radius-full); background: var(--pred-band); box-shadow: inset 0 0 0 1px var(--control-border); }
+.ig-legend i.bin { width: 10px; height: 10px; border: 1px solid var(--ink-muted); border-radius: 50%; background: color-mix(in srgb, var(--ink) 14%, transparent); }
+
+/* ---------- 출원 단계 (스테퍼) ---------- */
+.ig-steps { display: flex; margin: 0; padding: 0; list-style: none; counter-reset: step; overflow-x: auto; scrollbar-width: none; }
+.ig-steps li { position: relative; flex: 1 0 72px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 2px; font-size: 11px; line-height: 14px; text-align: center; color: var(--ink-muted); counter-increment: step; }
+.ig-steps li::before { content: counter(step); position: relative; z-index: 1; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--control-border); font-size: 11px; font-weight: 700; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.ig-steps li::after { content: ""; position: absolute; top: 11px; left: calc(-50% + 12px); right: calc(50% + 12px); height: 2px; background: var(--line); }
+.ig-steps li:first-child::after { display: none; }
+.ig-steps li.is-done { color: var(--ink); }
+.ig-steps li.is-done::before { content: "✓"; background: var(--ink); color: var(--on-inverse); box-shadow: none; }
+.ig-steps li.is-done::after, .ig-steps li.is-current::after { background: var(--ink); }
+.ig-steps li.is-current { color: var(--ink); font-weight: 700; }
+.ig-steps li.is-current::before { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 2.5px var(--ink); }
+.ig-steps li.is-current.is-behind::before { box-shadow: inset 0 0 0 4px var(--brand); color: var(--danger); }
+.ig-steps li.is-pass::before { content: "合"; background: var(--success); color: var(--surface); box-shadow: none; }
+.ig-steps li.is-fail::before { content: "–"; background: var(--surface-muted); color: var(--ink-muted); box-shadow: inset 0 0 0 1.5px var(--ink-muted); }
+.ig-stepmini { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 13px; white-space: nowrap; }
+.ig-stepmini__dots { display: inline-flex; gap: 3px; }
+.ig-stepmini__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.ig-stepmini__dots i.d { background: var(--ink); }
+.ig-stepmini__dots i.c { background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink); }
+.ig-stepmini.is-behind .ig-stepmini__dots i.c { box-shadow: inset 0 0 0 2.5px var(--brand); }
+.ig-stepmini b { font-weight: 600; }
+.ig-result { display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 0 9px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; }
+.ig-result--pass { background: var(--success-soft); color: var(--success); }
+.ig-result--fail { background: var(--surface-muted); color: var(--ink-muted); }
+.ig-result--wait { color: var(--ink-muted); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* ---------- 마감 보드 ---------- */
+.ig-board { display: flex; flex-direction: column; }
+.ig-board__day { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-2); font-size: 13px; font-weight: 700; background: var(--canvas); border-top: 1px solid var(--line); }
+.ig-board__day:first-child { border-top: 0; }
+.ig-board__day span { font-weight: 500; color: var(--ink-muted); font-size: 12px; }
+.ig-board__row { display: grid; grid-template-columns: 64px minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.3fr) 88px 40px; align-items: center; gap: var(--space-3); min-height: 64px; padding: var(--space-2) var(--space-5); border-top: 1px solid var(--line); background: var(--surface); }
+.ig-board__row.is-behind { box-shadow: inset 4px 0 0 var(--brand); }
+.ig-board__row.is-behind .ig-board__what { color: var(--danger); font-weight: 600; }
+.ig-board__who b { display: block; font-weight: 600; }
+.ig-board__who span, .ig-board__what { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+.ig-board__owner { font-size: 13px; color: var(--ink-muted); }
+@media (max-width: 760px) {
+  .ig-board__row { grid-template-columns: 60px minmax(0, 1fr) 40px; grid-template-areas: "d who act" "d sch act" "d stage act"; row-gap: 4px; padding: var(--space-3) var(--space-4); }
+  .ig-board__row > :nth-child(1) { grid-area: d; align-self: start; }
+  .ig-board__row > :nth-child(2) { grid-area: who; }
+  .ig-board__row > :nth-child(3) { grid-area: sch; }
+  .ig-board__row > :nth-child(4) { grid-area: stage; }
+  .ig-board__row > :nth-child(5) { display: none; }
+  .ig-board__row > :nth-child(6) { grid-area: act; align-self: start; }
+  .ig-board__day { padding: var(--space-3) var(--space-4) var(--space-2); }
+}
+
+/* ---------- 세로 타임라인 ---------- */
+.ig-tl { margin: 0; padding: 0; list-style: none; }
+.ig-tl li { position: relative; display: grid; grid-template-columns: 92px 20px minmax(0, 1fr); gap: var(--space-2); padding-bottom: var(--space-4); }
+.ig-tl li::before { content: ""; position: absolute; left: calc(92px + var(--space-2) + 9px); top: 18px; bottom: -2px; width: 2px; background: var(--line); }
+.ig-tl li:last-child::before { display: none; }
+.ig-tl__date { font-size: 13px; line-height: 20px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.ig-tl__date small { display: block; font-size: 11px; font-weight: 500; color: var(--ink-muted); }
+.ig-tl__dot { position: relative; z-index: 1; width: 20px; height: 20px; display: grid; place-items: center; }
+.ig-tl__dot::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); box-shadow: inset 0 0 0 2px var(--control-border); }
+.ig-tl li.is-past { color: var(--ink-muted); }
+.ig-tl li.is-past .ig-tl__dot::after { background: var(--ink-subtle); box-shadow: none; }
+.ig-tl li.is-next .ig-tl__dot::after { width: 14px; height: 14px; background: var(--surface); box-shadow: inset 0 0 0 3px var(--brand); }
+.ig-tl__what b { display: block; font-weight: 600; }
+.ig-tl__what span { font-size: 12px; line-height: 18px; color: var(--ink-muted); }
+.ig-tl__what .ig-dday { margin-top: 4px; }
+
+/* ---------- 서류 체크리스트 ---------- */
+.ig-checklist { margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.ig-checklist li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 52px; border-top: 1px solid var(--line); }
+.ig-checklist label { display: grid; place-items: center; width: 44px; height: 44px; cursor: pointer; }
+.ig-checklist input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); }
+.ig-checklist .ig-check__name { font-weight: 500; }
+.ig-checklist li.is-done .ig-check__name { color: var(--ink-muted); text-decoration: line-through; }
+.ig-checklist .ig-check__meta { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; justify-content: flex-end; }
+
+/* ---------- 모집요강 요약 카드 · 번역 뷰 ---------- */
+.ig-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-2); margin: 0; }
+.ig-kv > div { padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-hover); min-width: 0; }
+.ig-kv dt { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.ig-kv dd { margin: 4px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ig-kv dd small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-muted); }
+.ig-eju { display: flex; flex-wrap: wrap; gap: 6px; }
+.ig-eju span { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 9px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+.ig-eju .r { background: var(--inverse); color: var(--on-inverse); }
+.ig-eju .c { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.ig-eju .n { color: var(--ink-subtle); box-shadow: inset 0 0 0 1px var(--line); text-decoration: line-through; }
+.ig-trans { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.ig-trans__toc { position: sticky; top: calc(var(--appbar-height) + var(--space-4)); display: flex; flex-direction: column; gap: 2px; padding: var(--space-2); }
+.ig-trans__toc a { display: flex; justify-content: space-between; gap: var(--space-2); min-height: 40px; align-items: center; padding: 0 var(--space-3); border-radius: var(--radius-md); color: var(--ink-muted); text-decoration: none; font-size: 13px; font-weight: 600; }
+.ig-trans__toc a span { font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ig-trans__toc a:hover { background: var(--surface-hover); color: var(--ink); }
+.ig-trans__toc a[aria-current="true"] { background: var(--inverse); color: var(--on-inverse); }
+.ig-trans__sec + .ig-trans__sec { margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--line); }
+.ig-trans__h { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin-bottom: var(--space-3); }
+.ig-trans__h h3 { margin: 0; font-size: 17px; line-height: 24px; }
+.ig-trans__h .ig-jp { font-size: 13px; color: var(--ink-muted); }
+.ig-trans__h .ig-src { margin-left: auto; }
+.ig-trans p { margin: 0 0 var(--space-2); }
+.ig-trans blockquote { margin: var(--space-2) 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--surface-hover); font-family: var(--font-jp); font-size: 13px; line-height: 22px; color: var(--ink-muted); }
+@media (max-width: 760px) { .ig-trans { grid-template-columns: minmax(0, 1fr); } .ig-trans__toc { position: static; flex-direction: row; overflow-x: auto; } .ig-trans__toc a { flex: none; } }
+
+/* ---------- 상담 메모 ---------- */
+.ig-memo { margin: 0; padding: 0; list-style: none; }
+.ig-memo li { padding: var(--space-3) 0; border-top: 1px solid var(--line); }
+.ig-memo li:first-child { border-top: 0; padding-top: 0; }
+.ig-memo__meta { display: flex; gap: var(--space-2); font-size: 12px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.ig-memo__meta b { color: var(--ink); font-weight: 600; }
+.ig-memo p { margin: 4px 0 0; }
+
+/* ---------- 학생 카드 머리 ---------- */
+.ig-student { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.ig-student__mark { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--surface-muted); font-size: 18px; font-weight: 700; flex: none; }
+.ig-student__name { margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -0.015em; }
+.ig-student__meta { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); font-size: 13px; color: var(--ink-muted); }
+.ig-section-h { display: flex; align-items: baseline; gap: var(--space-3); margin: 0 0 var(--space-3); }
+.ig-section-h h2 { margin: 0; font-size: 18px; line-height: 26px; }
+.ig-section-h .ig-step-no { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--inverse); color: var(--on-inverse); font-size: 12px; font-weight: 700; align-self: center; }
+
+/* ---------- A4 상담 요약 (화면에서는 종이 모양, 인쇄에서는 실제 A4) ---------- */
+.ig-sheet { width: 794px; min-height: 1123px; margin: 0 auto; padding: 48px 52px 40px; background: #ffffff; color: #111111; box-shadow: var(--shadow-pop); display: flex; flex-direction: column; gap: 18px; font-size: 12.5px; line-height: 19px; }
+.ig-sheet h1 { margin: 0; font-size: 20px; line-height: 28px; }
+.ig-sheet h2 { margin: 0 0 6px; font-size: 13px; line-height: 18px; padding-bottom: 4px; border-bottom: 1.5px solid #111111; }
+.ig-sheet__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding-bottom: 10px; border-bottom: 3px solid #111111; }
+.ig-sheet__head img { height: 22px; }
+.ig-sheet table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ig-sheet th, .ig-sheet td { padding: 5px 6px; border-bottom: 1px solid #cfcfcb; text-align: left; vertical-align: middle; }
+.ig-sheet th { font-size: 11px; color: #4a4a47; font-weight: 600; }
+.ig-sheet .num { text-align: right; font-variant-numeric: tabular-nums; }
+.ig-sheet .ig-zone { background: transparent !important; color: #111111 !important; box-shadow: inset 0 0 0 1px #111111; padding: 0 8px 0 6px; min-height: 20px; }
+.ig-sheet__foot { margin-top: auto; padding-top: 10px; border-top: 1.5px solid #111111; font-size: 10.5px; line-height: 16px; color: #333333; }
+.ig-sheet .ig-chart text { fill: #333333; }
+.ig-sheet .ig-chart .me, .ig-sheet .ig-chart .pred-whisker { stroke: #111111; }
+.ig-sheet .ig-chart .me-dot { fill: #111111; }
+.ig-sheet .ig-chart .avg { stroke: #6b6b66; }
+.ig-sheet .ig-chart .pred-band { fill: url(#ig-hatch); }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  body { background: #ffffff !important; color: #111111; }
+  .ig-appbar, .ig-band, .ig-toasts, .ig-noprint { display: none !important; }
+  .ig-sheet-wrap { padding: 0 !important; background: none !important; }
+  .ig-sheet { width: 210mm; height: 297mm; min-height: 0; overflow: hidden; box-shadow: none; margin: 0; padding: 14mm 15mm 12mm; break-after: avoid; }
+  .ig-card, .ig-stat { box-shadow: none; border: 1px solid #cfcfcb; break-inside: avoid; }
+  .ig-chart .band-safe { fill: #e6e6e6; } .ig-chart .band-fit { fill: url(#ig-hatch); } .ig-chart .band-try { fill: url(#ig-dots); }
+  .ig-zone { background: transparent !important; color: #111111 !important; box-shadow: inset 0 0 0 1px #111111; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* ---------- 학생 화면(부드러운 톤) ---------- */
+.ig-soft .ig-card { border-radius: var(--radius-xl); }
+.ig-soft .ig-chance__pct { display: none; }
+.ig-soft .ig-pred__label { color: var(--info); }
+
+/* ---------- 미리보기 도우미 ---------- */
+.ig-demo { padding: var(--space-5); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ig-demo--col { flex-direction: column; align-items: stretch; }
+.ig-demo__label { font-size: 12px; font-weight: 600; color: var(--ink-muted); min-width: 92px; }
+
+/* 로고: 두 장을 넣고 테마에 맞는 쪽만 보인다 (반전본은 O는 빨강 그대로, 워드마크만 흰색) */
+.ig-logo--dark { display: none !important; }
+[data-theme="dark"] .ig-logo--light { display: none !important; }
+[data-theme="dark"] .ig-logo--dark { display: block !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ig-logo--light { display: none !important; } :root:not([data-theme="light"]) .ig-logo--dark { display: block !important; } }
+@media print { .ig-logo--dark { display: none !important; } .ig-logo--light { display: block !important; } }
