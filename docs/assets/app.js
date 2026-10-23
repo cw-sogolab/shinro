@@ -56,7 +56,7 @@
   const DEFAULT = { name: '예시 학생', kind: '문과', sci: ['phy', 'chem'], target: 'auto',
     rows: { m1: { jp: 290, so: 130, math: 120, ki: 35 }, m2: { jp: 305, so: 138, math: 128, ki: 35 }, e6: { jp: 318, so: 142, math: 135, ki: 40 }, m3: { jp: 320, so: 145, math: 140, ki: 40 }, m4: {}, e11: {} } };
   let S = store.get('student', DEFAULT);
-  /* 로컬 전용 학생 목록 (tools/students_export.py → assets/students.js, .gitignore). 없으면 직접 입력만 */
+  /* 학생 목록 (tools/students_export.py → students.js). 저장소엔 없고 드라이브 폴더에서 접속 코드 확인 후 내려옴. 없으면 직접 입력만 */
   const STU = window.STUDENTS && window.STUDENTS.list && window.STUDENTS.list.length ? window.STUDENTS : null;
   function loadStudent(st) {
     S = { name: st.n, campus: st.c, kind: st.k, sci: st.sci && st.sci.length === 2 ? st.sci.slice() : ['phy', 'chem'], target: 'auto', src: 'xlsx',
@@ -515,7 +515,7 @@
   const verEl = document.getElementById('ver'); if (verEl) verEl.textContent = `${C.version || 'v1'} · ${C.units.length}개`;
   document.getElementById('foot').innerHTML = `예측 모델 ${esc(M.built)} · 합격 곡선 ${C.units.length}개 학부 (${C.years[0]}~${C.years[1]}) · 모집요강 ${Y ? Y.docs.length : 0}건${window.MOCK ? ` · 모의고사 ${window.MOCK.year}년 ${window.MOCK.rounds.length}회분` : ''} · 학생 이름·점수는 이 브라우저에만 저장되고 서버로 보내지 않습니다. 합격·모의고사 데이터는 학원 밖 공유 금지.`;
   setCmp(cmp);
-  if (STU) { const band = document.querySelector('.ig-band'); if (band) { band.className = 'ig-band ig-band--dev'; band.textContent = `로컬 전용 · 실제 학생 ${STU.list.length}명 성적 (${STU.built} 기준) · 화면 공유·캡처 주의 · 이 컴퓨터 밖으로 내보내지 않기`; } }
+  if (STU) { const band = document.querySelector('.ig-band'); if (band) { band.className = 'ig-band ig-band--dev'; band.textContent = `실제 학생 ${STU.list.length}명 성적 (${STU.built} 기준) · 접속 코드로만 열림 · 화면 공유·캡처·전달 주의`; } }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', route);   // 정적으로 읽을 때. lock.js로 읽을 때는 모든 view-*.js가 등록된 뒤 lock.js가 hashchange로 첫 화면을 시작한다
 })();
 

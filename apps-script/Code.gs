@@ -11,6 +11,7 @@
  */
 var VER = 'shinro-1';
 var DATA_NAMES = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];   // 화면이 읽는 순서
+var OPTIONAL = ['students'];   // 폴더에 있으면 같이 내려 줌(실제 학생 성적). 없어도 오류 아님
 var MAX_FAIL = 10, FAIL_SEC = 300;   // 5분 안에 틀린 코드 10번이면 5분 동안 잠금
 
 function doGet() { return json_({ ok: true, app: '진학 상담', ver: VER }); }
@@ -60,11 +61,12 @@ function folder_() {
 /** 폴더의 데이터 js 를 읽어 gzip+base64 문자열로 만든다. 만든 결과는 6시간 캐시 (파일이 바뀌면 키가 달라져 새로 만듦) */
 var CHUNK = 90000, TTL = 21600;
 function readAll_() {
-  var folder = folder_(), blobs = {}, sig = [];
-  DATA_NAMES.forEach(function (n) {
+  var folder = folder_(), blobs = {}, sig = [], names = [];
+  DATA_NAMES.concat(OPTIONAL).forEach(function (n) {
     var it = folder.getFilesByName(n + '.js');
-    if (!it.hasNext()) throw new Error(n + '.js 가 폴더에 없습니다');
+    if (!it.hasNext()) { if (OPTIONAL.indexOf(n) >= 0) return; throw new Error(n + '.js 가 폴더에 없습니다'); }
     var f = it.next();
+    names.push(n);
     blobs[n] = f;
     sig.push(n + ':' + f.getLastUpdated().getTime() + ':' + f.getSize());
   });
@@ -74,8 +76,8 @@ function readAll_() {
   var gz = fromCache_(cache, key);
   if (!gz) {
     var files = {};
-    DATA_NAMES.forEach(function (n) { files[n] = blobs[n].getBlob().getDataAsString('UTF-8'); });
-    var blob = Utilities.gzip(Utilities.newBlob(JSON.stringify({ order: DATA_NAMES, files: files }), 'application/json', 'd.json'));
+    names.forEach(function (n) { files[n] = blobs[n].getBlob().getDataAsString('UTF-8'); });
+    var blob = Utilities.gzip(Utilities.newBlob(JSON.stringify({ order: names, files: files }), 'application/json', 'd.json'));
     gz = Utilities.base64Encode(blob.getBytes());
     toCache_(cache, key, gz);
   }
