@@ -137,9 +137,10 @@
     return zs.reduce((acc, z, i) => acc + w[i] * f(Math.min(top, Math.max(0, x + z * sd))), 0) / W;
   }
   const p50 = u => { const v = (-u.a - C.shift) / u.b; return v >= 0 && v <= Math.min(u.max, SETCAP[u.set] || u.max) ? Math.round(v) : null; };   // 실제 최고점(예: 일본어+종합+수학1 774)을 넘으면 「만점 넘음」
+  const MIN_AUC = .5;   // 구별력(AUC)이 이보다 낮으면 점수로 합격이 갈리지 않으므로 참고용
   const MIN_N = 30;   // 학습 인원이 이보다 적으면 곡선이 흔들려서 참고용
-  const weak = u => u.auc < .65 || p50(u) == null || u.n < MIN_N;
-  const weakTag = u => `<span class="ig-tag-nonscore">${u.auc >= .65 && p50(u) != null && u.n < MIN_N ? '자료 적음' : '점수 외 요소 큼'}</span>`;
+  const weak = u => u.auc < MIN_AUC || p50(u) == null || u.n < MIN_N;
+  const weakTag = u => `<span class="ig-tag-nonscore">${u.auc >= MIN_AUC && p50(u) != null && u.n < MIN_N ? '자료 적음' : '점수 외 요소 큼'}</span>`;
   function evalUnit(u, pred) {
     const x = setScore(pred, u.set); if (x == null) return null;
     const p = pAt(u, x, setSd(pred, u.set)); return { u, x: Math.round(x), p, z: zoneOf(p), m: p50(u), weak: weak(u) };
@@ -461,7 +462,7 @@
         <div class="ig-card__actions">${weak(u) ? weakTag(u) : ''}${r ? zoneChip(r.z) : ''}${yk ? `<a class="ig-btn ig-btn--sm" href="${yk.link}">${icon('book')}모집요강 보기</a>` : ''}${addBtn(k, cmp.includes(k), 'cadd')}</div></div>
       <div class="ig-chart" id="cv"></div>
       <ul class="ig-legend"><li><i></i>합격 가능성 곡선 (올해 수준 보정)</li><li><i class="bin"></i>20점 구간 실제 합격 비율 · 원 크기 = 인원</li><li><i class="range"></i>${esc(S.name)} 예측 범위</li></ul>
-      <dl class="ig-kv" style="margin-top:16px"><div><dt>학습 인원 (합격)</dt><dd>${u.n}명 (${u.p}명)</dd></div><div><dt>최근 2년</dt><dd>${u.recent}명</dd></div><div><dt>반반 점수</dt><dd>${m != null ? m + '점' : '만점 넘음'}</dd></div><div><dt>구별력 (AUC)</dt><dd>${u.auc.toFixed(2)}<small>${u.auc < .65 ? '점수만으로 잘 갈리지 않음' : '점수로 잘 갈림'}</small></dd></div></dl>
+      <dl class="ig-kv" style="margin-top:16px"><div><dt>학습 인원 (합격)</dt><dd>${u.n}명 (${u.p}명)</dd></div><div><dt>최근 2년</dt><dd>${u.recent}명</dd></div><div><dt>반반 점수</dt><dd>${m != null ? m + '점' : '만점 넘음'}</dd></div><div><dt>구별력 (AUC)</dt><dd>${u.auc.toFixed(2)}<small>${u.auc < MIN_AUC ? '점수만으로 잘 갈리지 않음' : '점수로 잘 갈림'}</small></dd></div></dl>
       <details class="sh-how" open><summary>이 곡선은 어떻게 만들었나요?</summary><ol>
         <li><b>재료</b> — 최근 5년(${C.years[0]}~${C.years[1]}) 이 학부 ${u.k} 지원자 ${u.n}명의 EJU 점수와 합격·불합격. 과목은 ${SETLAB[u.set]} (기술 제외), 회차는 ${u.r === '최고' ? '6월·11월 중 높은 쪽' : u.r}. 이 조합이 합격·불합격을 가장 잘 가르는 것(AUC)이라 자동으로 골랐어요.</li>
         <li><b>점</b> — 20점 구간마다 실제로 합격한 비율. 원이 클수록 그 구간 지원자가 많아요.</li>
