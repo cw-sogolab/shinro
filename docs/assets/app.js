@@ -58,13 +58,14 @@
   let S = store.get('student', DEFAULT);
   /* 학생 목록 (tools/students_export.py → students.js). 저장소엔 없고 드라이브 폴더에서 접속 코드 확인 후 내려옴. 없으면 직접 입력만 */
   const STU = window.STUDENTS && window.STUDENTS.list && window.STUDENTS.list.length ? window.STUDENTS : null;
-  function loadStudent(st) {
+  /* dest: 불러온 뒤 갈 화면. 홈에서 부르면 'home'으로 그대로 머문다 */
+  function loadStudent(st, dest = 'pred') {
     S = { name: st.n, campus: st.c, kind: st.k, sci: st.sci && st.sci.length === 2 ? st.sci.slice() : ['phy', 'chem'], target: 'auto', src: 'xlsx',
       rows: { m1: {}, m2: {}, e6: {}, m3: {}, m4: {}, e11: {}, ...JSON.parse(JSON.stringify(st.rows)) } };
-    save(); store.set('sqFocus', true); go('pred');
+    save(); if (dest === 'pred') store.set('sqFocus', true); go(dest);
   }
-  function bindStudentSearch() {
-    const q = document.getElementById('sq'), box = document.getElementById('ssugg'); let act = -1, hits = [];
+  function bindStudentSearch(q = document.getElementById('sq'), box = document.getElementById('ssugg'), dest = 'pred') {
+    let act = -1, hits = [];
     const norm = t => t.replace(/\s/g, '');
     const run = () => {
       const t = norm(q.value); act = -1;
@@ -72,13 +73,13 @@
       hits = STU.list.filter(x => norm(x.n).startsWith(t)).concat(STU.list.filter(x => !norm(x.n).startsWith(t) && norm(x.n).includes(t))).slice(0, 8);
       box.innerHTML = hits.length ? hits.map((x, i) => `<a href="#" data-i="${i}"><span><b>${esc(x.n)}</b> <span class="ig-muted">${esc(x.c)} · ${x.k}</span>${x.c === '외부' ? ' <span class="ig-badge ig-badge--warning">외부 응시생</span>' : ''}</span><small>${EXAMS.filter(e => x.rows[e.id]).map(e => e.short).join(' · ')}</small></a>`).join('')
         : '<p class="ig-muted" style="margin:8px 0 0;font-size:13px">맞는 학생이 없습니다.</p>';
-      box.querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault(); loadStudent(hits[+a.dataset.i]); });
+      box.querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault(); loadStudent(hits[+a.dataset.i], dest); });
     };
     q.addEventListener('input', run);
     q.addEventListener('keydown', e => {
       const items = [...box.querySelectorAll('a')];
       if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && items.length) { e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; items.forEach((a, i) => a.setAttribute('aria-current', i === act)); }
-      if (e.key === 'Enter' && hits.length) { e.preventDefault(); loadStudent(hits[Math.max(0, act)]); }
+      if (e.key === 'Enter' && hits.length) { e.preventDefault(); loadStudent(hits[Math.max(0, act)], dest); }
       if (e.key === 'Escape') { q.value = ''; run(); }
     });
   }
@@ -516,7 +517,7 @@
   function go(h) { if (location.hash.slice(1) === h) route(); else location.hash = h; }
   window.SH = { views: VIEWS, go, esc, icon, store, ISO, TODAY, parse, WD, md, fmt, range, dday, ddayOf, pct, yen, DISC, KO, Y, C, M,
     SUBJ, MAXS, ZK, zoneChip, school, koName, pagehead, sectionH, yokoFor, yokoByKey, curveFor, evalUnit, predict, examTotal,
-    cmpKeyForYoko, toggleCmp, addBtn, save, hasStudents: !!STU, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
+    cmpKeyForYoko, toggleCmp, addBtn, save, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
   document.querySelectorAll('[data-t]').forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.t); });
   window.addEventListener('hashchange', route);
   const verEl = document.getElementById('ver'); if (verEl) verEl.textContent = `${C.version || 'v1'} · ${C.units.length}개`;
