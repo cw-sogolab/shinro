@@ -320,6 +320,13 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-rpt .ig-school b { font-size: 12px; } .sh-rpt .ig-school .ig-jp { font-size: 10.5px; color: #4a4a47; }
 .sh-rpt td, .sh-rpt th { padding: 2px 6px; line-height: 18px; }
 .sh-rpt-ct .ig-school { min-width: 0; }
+.sh-rpt-scn { display: grid; gap: 12px; }
+.sh-rpt-sh { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 6px; background: #efefec; font-size: 12px; }
+.sh-rpt-sh span { color: #4a4a47; font-variant-numeric: tabular-nums; }
+.sh-rpt-tb { table-layout: fixed; }
+.sh-rpt-tb td.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-rpt-tb td.num { width: 44px; }
+.sh-rpt-tb tr.zh td { border-bottom: 0; padding-top: 4px; }
 .sh-rpt-curves { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
 .sh-rpt-ct { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
 .sh-rpt-ct > span { white-space: nowrap; font-size: 12px; }

@@ -95,6 +95,12 @@
   function parts() { return S.kind === '문과' ? ['jp', 'so', 'math'] : ['jp', S.sci[0], S.sci[1], 'math']; }
   function hasRow(id) { const r = S.rows[id] || {}; return subjects().some(s => r[s] !== '' && r[s] != null && !isNaN(+r[s])); }
   function autoTarget() { return hasRow('e11') ? 'a11' : hasRow('e6') ? 'e11' : 'e6'; }
+  /* 과목별 예측 점수 → 조합 점수 계산에 쓰는 벡터 */
+  function vecFrom(P) {
+    const sc = S.sci;
+    return { jp: P.jp?.fin, so: P.so?.fin, m1: S.kind === '문과' ? P.math?.fin : undefined,
+             r: S.kind === '이과' && P[sc[0]] && P[sc[1]] ? P[sc[0]].fin + P[sc[1]].fin : undefined, m2: S.kind === '이과' ? P.math?.fin : undefined };
+  }
   function predict() {
     const target = S.target === 'auto' ? autoTarget() : S.target;
     const out = { target, subj: {}, used: new Set() };
@@ -111,14 +117,24 @@
       const A = target === 'e11' && M.adj[S.kind]?.[s]; if (A) f = Math.min(A.cap, Math.max(0, A.c0 + A.c1 * r));
       out.subj[s] = { raw: r, fin: Math.min(REALMAX[s] || MAXS[s], Math.max(0, f)) };
     }
-    const P = out.subj, sc = S.sci;
-    out.vec = { jp: P.jp?.fin, so: P.so?.fin, m1: S.kind === '문과' ? P.math?.fin : undefined,
-                r: S.kind === '이과' && P[sc[0]] && P[sc[1]] ? P[sc[0]].fin + P[sc[1]].fin : undefined, m2: S.kind === '이과' ? P.math?.fin : undefined };
+    const P = out.subj;
+    out.vec = vecFrom(P);
     const pp = parts();
     out.total = pp.every(p => P[p]) ? pp.reduce((t, p) => t + P[p].fin, 0) : null;
     out.sd = target === 'a11' ? 0 : (target === 'e11' ? M.sd11 : M.sd6)[S.kind];
     out.fullVar = pp.reduce((t, p) => t + (SUBJ_SD[p] || 10) ** 2, 0);
     return out;
+  }
+  /* 예측 범위의 하한(-1)·상한(+1) 점수 (평균=0은 그대로). 총점이 「보통 범위」 끝(± P.sd)에 오도록 과목마다 분산 비율로 나눠 움직인다.
+   * 끝점은 점수가 그 값이라고 보고 곡선을 바로 읽으므로 오차 평균(sd)은 0으로 둔다 */
+  function scenarioPred(P, k) {
+    if (!k || !P.sd || P.total == null) return P;
+    const pp = parts(), subj = {};
+    for (const s of Object.keys(P.subj)) {
+      const v = P.subj[s], w = pp.includes(s) ? (SUBJ_SD[s] || 10) ** 2 / P.fullVar : 0;
+      subj[s] = { ...v, fin: Math.min(REALMAX[s] || MAXS[s], Math.max(0, v.fin + k * P.sd * w)) };
+    }
+    return { ...P, subj, vec: vecFrom(subj), total: pp.reduce((t, q) => t + subj[q].fin, 0), sd: 0 };
   }
   function setScore(pred, set) {
     let t = 0; for (const c of SETS[set]) { const v = pred.vec[c]; if (v == null) return null; t += v; } return t;
@@ -219,6 +235,7 @@
       </section>
       <section>
         ${sectionH(3, '추천 학교', '', 'recmeta')}
+        <div class="sh-filters" id="scnrow"><div class="ig-field"><span class="ig-field__label">예측 점수 구간 <span class="ig-muted" id="scnnote"></span></span><div class="ig-seg" role="group" aria-label="예측 점수 구간" id="scn">${[['low', '하한'], ['mid', '평균'], ['high', '상한'], ['all', '세 구간 비교']].map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${scn === v}">${l}</button>`).join('')}</div></div></div>
         <div class="sh-filters">
           <label class="ig-field"><span class="ig-sr">학교·학부 거르기</span><span class="ig-field__control">${icon('search', '')}<input class="ig-input" type="search" id="fq" placeholder="학교·학부 이름 (한국어·일본어)" value="${esc(filt.q)}"></span></label>
           <label class="sh-check"><input type="checkbox" id="fw" ${filt.weak ? 'checked' : ''}>「참고용」 학부도 보기</label>
@@ -242,6 +259,7 @@
       const v = inp.value.trim(); if (v === '') delete S.rows[r][s]; else S.rows[r][s] = +v;
       save(); drawPred();
     });
+    app.querySelectorAll('#scn button').forEach(b => b.onclick = () => { scn = b.value; store.set('scn', scn); drawRec(); });
     document.getElementById('fq').oninput = e => { filt.q = e.target.value; store.set('filt', filt); drawRec(); };
     document.getElementById('fw').onchange = e => { filt.weak = e.target.checked; store.set('filt', filt); drawRec(); };
     drawPred();
@@ -308,14 +326,23 @@
   }
 
   let lastPred = null;
+  let scn = store.get('scn', 'mid');   // 추천을 볼 예측 점수 구간: low 하한 · mid 평균 · high 상한 · all 세 구간 비교
+  const SCN = { low: [-1, '하한'], mid: [0, '평균'], high: [1, '상한'] };
   function drawRec(P) {
     P = P || lastPred || predict(); lastPred = P;
     const cols = document.getElementById('cols'); if (!cols) return;
+    const hasBand = P.total != null && !!P.sd, mode = hasBand ? scn : 'mid';
+    const tot = k => Math.round(scenarioPred(P, k).total);
+    const sr = document.getElementById('scnrow'); if (sr) sr.style.display = hasBand ? '' : 'none';
+    const sn = document.getElementById('scnnote'); if (sn) sn.textContent = hasBand ? `하한 ${tot(-1)} · 평균 ${tot(0)} · 상한 ${tot(1)}점` : '';
+    document.querySelectorAll('#scn button').forEach(b => b.setAttribute('aria-pressed', b.value === mode));
+    if (mode === 'all') return drawRecAll(P, cols);
+    const Q = scenarioPred(P, SCN[mode][0]);
     const q = filt.q.trim();
     const rows = C.units.filter(u => (u.k === S.kind || u.k === '일본어만') && (!q || (u.s + u.f + (koName(u) || '')).includes(q)))
-      .map(u => evalUnit(u, P)).filter(r => r && r.z);
+      .map(u => evalUnit(u, Q)).filter(r => r && r.z);
     const ref = rows.filter(r => r.weak), main = rows.filter(r => !r.weak);
-    document.getElementById('recmeta').textContent = P.total == null ? '점수를 넣으면 나옵니다' : `${S.kind} · 추천 ${main.length}개 학부 + 참고용 ${ref.length}개 · 15% 미만은 숨김`;
+    document.getElementById('recmeta').textContent = P.total == null ? '점수를 넣으면 나옵니다' : `${S.kind} · ${hasBand ? `${SCN[mode][1]} ${Math.round(Q.total)}점 · ` : ''}추천 ${main.length}개 학부 + 참고용 ${ref.length}개 · 15% 미만은 숨김`;
     cols.innerHTML = ZONES.map(([z]) => {
       const list = main.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p);
       return `<section class="ig-card ig-card--flush sh-col"><div class="sh-col__head">${zoneChip(z)}<b>${list.length}</b><span>${z === '안정' ? '70% 이상' : z === '적정' ? '40~70%' : '15~40%'}</span></div>
@@ -324,6 +351,20 @@
     const rb = document.getElementById('refbox');
     if (rb) rb.innerHTML = filt.weak && ref.length && P.total != null ? `<section class="ig-card ig-card--flush sh-ref"><div class="sh-col__head"><span class="ig-tag-nonscore">참고용</span><b>${ref.length}</b><span>자료가 적거나 점수로 잘 안 갈리는 학부 — 합격 가능성 구간으로 나누지 않고 참고만 하세요</span></div><div class="sh-ref__list" tabindex="0" aria-label="참고용 학부 목록 ${ref.length}개">${ref.sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p).map(card).join('')}</div></section>` : '';
     (rb || cols).querySelectorAll('[data-add]').forEach(b => b.onclick = () => toggleCmp(b.dataset.add, () => drawRec(P)));
+    cols.querySelectorAll('[data-add]').forEach(b => b.onclick = () => toggleCmp(b.dataset.add, () => drawRec(P)));
+  }
+  /* 세 구간 비교: 학부마다 하한·평균·상한 점수일 때의 합격 가능성을 한 줄에 */
+  function drawRecAll(P, cols) {
+    const Qs = [-1, 0, 1].map(k => scenarioPred(P, k)), q = filt.q.trim();
+    const rows = C.units.filter(u => (u.k === S.kind || u.k === '일본어만') && (!q || (u.s + u.f + (koName(u) || '')).includes(q)))
+      .map(u => ({ u, rs: Qs.map(Q => evalUnit(u, Q)) })).filter(x => x.rs.every(Boolean) && x.rs.some(r => r.z));
+    const main = rows.filter(x => !x.rs[1].weak).sort((a, b) => b.rs[1].p - a.rs[1].p || b.rs[2].p - a.rs[2].p);
+    document.getElementById('recmeta').textContent = `${S.kind} · 세 구간 비교 · ${main.length}개 학부 · 참고용 ${rows.length - main.length}개 제외 · 15% 미만은 숨김`;
+    const cell = r => `<td><b class="ig-num">${pct(r.p)}</b> ${zoneChip(r.z)}</td>`;
+    cols.innerHTML = `<section class="ig-card ig-card--flush" style="grid-column:1/-1"><div class="ig-table-wrap" style="max-height:640px;overflow:auto"><table class="ig-table ig-table--sticky">
+      <thead><tr><th>학교 · 학부</th>${[['하한', 0], ['평균', 1], ['상한', 2]].map(([l, i]) => `<th>${l} <span class="ig-muted">${Math.round(Qs[i].total)}점</span></th>`).join('')}<th></th></tr></thead>
+      <tbody>${main.map(x => `<tr><td><a class="sh-schoollink" href="${SH.hrefSchool ? SH.hrefSchool(x.u.s, x.u.f) : '#curve'}">${school(x.u)}</a></td>${x.rs.map(cell).join('')}<td>${addBtn(ukey(x.u), cmp.includes(ukey(x.u)))}</td></tr>`).join('') || `<tr><td colspan="5"><div class="ig-empty"><p>해당 학부 없음</p></div></td></tr>`}</tbody></table></div></section>`;
+    const rb = document.getElementById('refbox'); if (rb) rb.innerHTML = '';
     cols.querySelectorAll('[data-add]').forEach(b => b.onclick = () => toggleCmp(b.dataset.add, () => drawRec(P)));
   }
   function card(r) {
@@ -500,10 +541,12 @@
       return;
     }
     const [lo, hi] = predRange(P), isAct = P.target === 'a11';
-    const all = C.units.filter(u => u.k === S.kind || u.k === '일본어만').map(u => evalUnit(u, P)).filter(r => r && r.z);
-    const main = all.filter(r => !r.weak), nref = all.length - main.length;
-    const by = z => main.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p);
-    const lists = Object.fromEntries(ZONES.map(([z]) => [z, by(z)]));
+    // 예측이 범위(±오차)면 하한·평균·상한 세 구간, 실제 점수면 한 구간
+    const kindUnits = C.units.filter(u => u.k === S.kind || u.k === '일본어만');
+    const scenOf = Q => { const rs = kindUnits.map(u => evalUnit(u, Q)).filter(r => r && r.z), main = rs.filter(r => !r.weak);
+      return { Q, nref: rs.length - main.length, lists: Object.fromEntries(ZONES.map(([z]) => [z, main.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p)])) }; };
+    const scens = (P.sd ? [[-1, '하한'], [0, '평균'], [1, '상한']] : [[0, '실제']]).map(([k, l]) => ({ l, ...scenOf(scenarioPred(P, k)) }));
+    const mid = scens.find(x => x.l === '평균' || x.l === '실제'), lists = mid.lists, nref = mid.nref;
     // 곡선을 보여 줄 학교: 비교에 담은 학교(곡선 있는 것) 우선, 없으면 적정 2 · 도전 1 · 안정 1 순으로 고름
     const fromCmp = cmp.map(cmpItem).filter(it => it && it.u).map(it => evalUnit(it.u, P)).filter(Boolean).slice(0, RPT_CURVES);
     let picks = fromCmp;
@@ -515,8 +558,8 @@
     const sdOf = s => P.sd ? P.sd * (SUBJ_SD[s] || 10) / Math.sqrt(P.fullVar) : 0;
     const subRow = s => { const v = P.subj[s]; if (!v) return `<tr><td>${SUBJ[s]}</td><td class="num">—</td><td class="num">—</td></tr>`; const d = sdOf(s);
       return `<tr><td>${SUBJ[s]} <span class="sh-rpt-mute">/${MAXS[s]}</span></td><td class="num"><b>${Math.round(v.fin)}</b></td><td class="num">${d ? `${Math.max(0, Math.round(v.fin - d))}~${Math.min(REALMAX[s] || MAXS[s], Math.round(v.fin + d))}` : '실제'}</td></tr>`; };
-    const recRows = ZONES.map(([z]) => { const L = lists[z]; if (!L.length) return `<tr><td>${zoneChip(z)}</td><td colspan="4" class="sh-rpt-mute">해당 학부 없음</td></tr>`;
-      return L.slice(0, RPT_PER_ZONE).map((r, i) => `<tr>${i === 0 ? `<td rowspan="${Math.min(L.length, RPT_PER_ZONE)}">${zoneChip(z)}<div class="sh-rpt-mute">${L.length}곳 중 상위</div></td>` : ''}<td>${school(r.u)}</td><td class="num"><b>${pct(r.p)}</b></td><td class="num">${r.m ?? '—'}</td><td class="num">${SETLAB[r.u.set]} ${r.x}</td></tr>`).join(''); }).join('');
+    const scnCol = x => `<div><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><table class="sh-rpt-tb"><tbody>${ZONES.map(([z]) => `<tr class="zh"><td colspan="2">${zoneChip(z)}</td></tr>`
+      + (x.lists[z].slice(0, RPT_PER_ZONE).map(r => `<tr><td class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</td><td class="num"><b>${pct(r.p)}</b></td></tr>`).join('') || '<tr><td colspan="2" class="sh-rpt-mute">해당 학부 없음</td></tr>')).join('')}</tbody></table></div>`;
     const trend = trendOpts(P, lo, hi, true);
     const dateTxt = `${TODAY.getFullYear()}년 ${md(ISO)}`;
     app.innerHTML = `
@@ -528,8 +571,8 @@
           <div class="sh-rpt-two"><div class="ig-chart" id="rtrend"></div>
             <div><div class="sh-rpt-total"><span class="sh-rpt-mute">${isAct ? '11월 EJU 총점' : '예상 총점'} (기술 제외)</span><b>${Math.round(P.total)}</b><span>${isAct ? '점 · 실제' : `점 · 보통 ${lo}~${hi}`}</span></div>
               <table><thead><tr><th>과목</th><th class="num">${isAct ? '점수' : '예상'}</th><th class="num">${isAct ? '' : '보통 범위'}</th></tr></thead><tbody>${parts().map(subRow).join('')}</tbody></table></div></div></section>
-        <section><h2>2. 추천 학교 <span class="sh-rpt-mute">합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
-          <table><thead><tr><th>구간</th><th>학교 · 학부</th><th class="num">합격 가능성</th><th class="num">반반 점수</th><th class="num">학생 점수</th></tr></thead><tbody>${recRows}</tbody></table></section>
+        <section><h2>2. 추천 학교 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
+          <div class="sh-rpt-scn" style="grid-template-columns:repeat(${scens.length},1fr)">${scens.map(scnCol).join('')}</div></section>
         <section><h2>3. 합격 곡선 <span class="sh-rpt-mute">${fromCmp.length ? '비교에 담은 학교' : '추천 학교 가운데 상담할 만한 곳'} · 점 = 실제 합격 비율 · 세로선 = 학생 예측</span></h2>
           <div class="sh-rpt-curves">${picks.length ? picks.map((r, i) => `<div><div class="sh-rpt-ct">${school(r.u)}<span>${zoneChip(r.z)} <b>${pct(r.p)}</b></span></div><div class="ig-chart" id="rc${i}"></div></div>`).join('') : '<p class="sh-rpt-mute">곡선이 있는 추천 학교가 없습니다.</p>'}</div></section>
         <div class="ig-sheet__foot">참고용 · 합격을 보장하지 않음 · 최종 판단은 상담 강사와 함께 합니다. 예측 점수는 범위로 보며, 합격 가능성은 과거 비슷한 점수 지원자 중 합격한 비율입니다.${nref ? ` 점수만으로 잘 갈리지 않거나 자료가 적은 ${nref}개 학부는 이 표에서 뺐습니다.` : ''} 학원 내부 자료 · 외부 반출 금지.</div>
