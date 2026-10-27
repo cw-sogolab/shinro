@@ -547,7 +547,7 @@
   function drawList() {
     const q = document.getElementById('cq').value.trim();
     document.getElementById('clist').innerHTML = C.units.map((u, i) => [u, i]).filter(([u]) => !q || (u.s + u.f + (koName(u) || '')).includes(q))
-      .map(([u, i]) => `<button type="button" data-i="${i}" aria-current="${i === sel}">${school(u)}<small>${u.k}</small></button>`).join('') || '<p class="ig-muted" style="padding:8px 12px">없음</p>';
+      .map(([u, i]) => `<button type="button" data-i="${i}" aria-current="${i === sel}">${school(u)}<small>${u.k}${u.yk ? ' · 2027 요강 기준' : ''}</small></button>`).join('') || '<p class="ig-muted" style="padding:8px 12px">없음</p>';
     document.querySelectorAll('#clist button').forEach(a => a.onclick = () => { sel = +a.dataset.i; drawList(); drawCurve(); });
     const cur = document.querySelector('#clist [aria-current="true"]'); if (cur && !q) { const L = document.getElementById('clist'); L.scrollTop = cur.offsetTop - L.offsetTop - 8; }
   }

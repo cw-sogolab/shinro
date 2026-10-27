@@ -427,7 +427,7 @@
       <section class="ig-card ig-card--flush"><div class="ig-card__head"><div><h3 class="ig-card__title">학부 한눈에</h3><p class="ig-card__sub">${S.kind} 기준 · ${PERLAB()[per]} · 학부를 누르면 합격생 점수대·곡선·모집요강</p></div>
         <div class="ig-seg" role="group" aria-label="기간" id="sper">${[['r', '최근 5년'], ['a', '10년 전체']].map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${v === per}">${l}</button>`).join('')}</div></div>
         <div class="ig-table-wrap"><table class="ig-table ig-table--sticky"><thead><tr><th>학부</th><th class="num">합격 / 지원</th><th style="min-width:220px">합격자 점수대</th><th>내 위치</th><th>합격 가능성</th><th>모집요강</th></tr></thead>
-        <tbody>${list.map(({ fo, r, any }) => `<tr><td><a class="ig-school sh-schoollink" href="${hrefSchool(u, fo.f)}"><b>${esc(nameF(fo.f))}</b><span class="ig-jp" lang="ja">${esc(fo.f)}</span></a>${r ? `<span class="sh-sub">${SETLAB[r.set]}</span>` : ''}</td>
+        <tbody>${list.map(({ fo, r, any }) => `<tr><td><a class="ig-school sh-schoollink" href="${hrefSchool(u, fo.f)}"><b>${esc(nameF(fo.f))}</b><span class="ig-jp" lang="ja">${esc(fo.f)}</span></a>${r ? `<span class="sh-sub">${SETLAB[r.set]}</span>` : ''}<span class="sh-sub ${fo.yk ? '' : 'ig-muted'}">${fo.yk ? '2027 모집요강 기준' : '요강 미등록'}</span></td>
           <td class="num">${r ? `<b>${r.st.ps}</b> / ${r.st.ap}` : any ? `<span class="ig-muted">${S.kind} 기록 없음</span>` : '—'}</td>
           <td>${r ? rangeBar(r.q, r.x != null ? Math.round(r.x) : null, r.set, true) : ''}</td><td>${r ? vBadge(r.v) : ''}</td>
           <td>${r && r.ch ? `${SH.zoneChip(r.ch.z)} <b class="ig-num">${SH.pct(r.ch.p)}</b>` : '<span class="ig-muted" style="font-size:12px">곡선 없음</span>'}</td>
@@ -455,7 +455,7 @@
     main.innerHTML = `
       <section class="ig-card">
         <div class="ig-card__head"><div><p class="ig-pagehead__eyebrow">① 합격생 점수대</p><h3 class="ig-card__title">${esc(nameU(u))} ${esc(nameF(f))}에 합격한 사람들의 EJU</h3>
-          <p class="ig-card__sub">${PERLAB()[per]} · ${kind || ''} · 6월·11월 중 높은 쪽 · 학원·제보 지원자 기준</p></div>
+          <p class="ig-card__sub">${PERLAB()[per]} · ${kind || ''} · 6월·11월 중 높은 쪽 · 학원·제보 지원자 기준${fo && fo.yk ? ` · <b>2027 모집요강 기준</b>(요강 계열만${fo.x ? `, 다른 계열 ${fo.x}명 제외` : ''})` : ' · 요강 미등록(지원자 데이터로 추정)'}</p></div>
           <div class="ig-card__actions">${SH.addBtn(key, SH.cmp.includes(key), 'scmp')}</div></div>
         ${st ? `<div class="sh-row" style="margin-bottom:16px">${segH('skind', kinds.map(k => [k, k]), v => v === kind, '계열')}${segH('sset', Object.keys(st.sets).filter(s => st.sets[s].p).map(s => [s, SETLAB[s]]), v => v === set, '과목 조합')}${segH('sper2', [['r', '최근 5년'], ['a', '10년 전체']], v => v === per, '기간')}</div>
         <div class="ig-grid ig-grid--4 sh-mini">

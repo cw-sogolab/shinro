@@ -15,6 +15,10 @@
 - 학부가 보는 조합(곡선이 없을 때): 합격자의 60% 이상이 가진 조합 중 과목이 가장 많은 것.
 - 기간: 최근 5년(r)과 전체(a) 두 가지.
 
+- 2027 모집요강(data/yoko/2027)이 있는 학부는 요강이 인정하는 계열·과목 조합의 지원자만 집계한다 (tools/yoko_rule.py).
+  요강이 일본어만 보는 학부는 모든 계열 기록을 쓰되 비교 점수는 일본어(J)만. 요강이 없는 학부는 예전 방식(지원자 데이터로 추정).
+  학부마다 `yk` = {doc, kinds, sets} 를 달아 화면이 「2027 모집요강 기준」 표시를 한다. 요강 매칭 실패는 목록으로 출력한다.
+
 사용: python3 tools/schools_export.py [--src <xlsx>]
 """
 import argparse
@@ -27,9 +31,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+import yoko_rule as yr
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "assets" / "schools.js"
-DEFAULT = "~/Library/Mobile Documents/com~apple~CloudDocs/일공/자료/EJU성적/EJU통합_성적분석_v8.xlsx"
+DEFAULT = "~/Library/Mobile Documents/com~apple~CloudDocs/일공/8_자료/EJU성적/1_입시결과/EJU통합_성적분석_v8.xlsx"
 
 SCI = ['물리', '화학', '생물']
 SETS = {'문과': ['J', 'JS', 'JSM'], '이과': ['J', 'JR', 'JRM'], '일본어만': ['J']}
@@ -108,19 +114,20 @@ def q(v):
     return [len(v), int(round(v[0])), p(.25), p(.5), p(.75), int(round(v[-1])), round(float(v.mean()), 1)]
 
 
-def unit_stats(d, kind):
-    """한 학교·학부·계열·기간의 집계"""
+def unit_stats(d, kind, allowed=None):
+    """한 학교·학부·계열·기간의 집계. allowed = 요강이 인정하는 과목 조합(없으면 전부)"""
+    names = [s for s in SETS[kind] if allowed is None or s in allowed]
     out = {'ap': int(len(d)), 'ps': int(d['y'].sum())}
     p = d[d['y'] == 1]
     sets = {}
-    for s in SETS[kind]:
+    for s in names:
         sp = p[f'S_{s}'].dropna(); sf = d[d['y'] == 0][f'S_{s}'].dropna()
         if len(sp) or len(sf):
             sets[s] = {'p': q(sp), 'f': q(sf), 'cov': round(len(sp) / max(1, len(p)), 2)}
     out['sets'] = sets
     # 학부가 보는 조합(추정): 합격자 60% 이상이 가진 조합 중 과목이 가장 많은 것
-    cand = [s for s in SETS[kind] if s in sets and sets[s]['p'] and sets[s]['cov'] >= .6]
-    out['set'] = cand[-1] if cand else (SETS[kind][0] if SETS[kind][0] in sets else None)
+    cand = [s for s in names if s in sets and sets[s]['p'] and sets[s]['cov'] >= .6]
+    out['set'] = cand[-1] if cand else (names[0] if names and names[0] in sets else None)
     # 과목별 합격 평균 (그 조합 점수가 높았던 회차의 과목 점수)
     if out['set'] and len(p):
         s = out['set']
@@ -161,24 +168,40 @@ def main():
         facs = []
         for f, dfa in du.groupby('학부n'):
             ent = {'f': f, 'dept': [k for k, _ in dfa['학과n'].value_counts().items() if k and k != '(미기재)'][:12], 'k': {}}
+            rule = yr.rule(u, f)
+            if rule:
+                ent['yk'] = rule
+            kept = []
             for kind in SETS:
+                if rule and kind not in rule['kinds']:
+                    continue   # 요강이 인정하지 않는 계열 → 이 학부의 집계에 넣지 않는다
                 dk = dfa[dfa['kind'] == kind]
                 if not len(dk):
                     continue
+                kept.append(dk)
+                allowed = rule['sets'][kind] if rule else None
                 rk = recent.loc[recent.index.intersection(dk.index)]
-                e = {'a': unit_stats(dk, kind)}
+                e = {'a': unit_stats(dk, kind, allowed)}
                 if len(rk):
-                    e['r'] = unit_stats(rk, kind)
+                    e['r'] = unit_stats(rk, kind, allowed)
                 ent['k'][kind] = e
             if ent['k']:
-                ent['n'] = int(len(dfa)); ent['p'] = int(dfa['y'].sum())
+                used = pd.concat(kept) if rule else dfa
+                ent['n'] = int(len(used)); ent['p'] = int(used['y'].sum())
+                if rule:
+                    ent['x'] = int(len(dfa) - len(used))   # 요강 계열이 아니라서 뺀 기록 수
                 facs.append(ent)
         if facs:
             facs.sort(key=lambda x: -x['n'])
             univ.append({'u': u, 'type': TYPE.get(code[:1], ''), 'n': int(len(du)), 'p': int(du['y'].sum()), 'fac': facs})
     univ.sort(key=lambda x: -x['n'])
+    pairs = set(zip(df['학교n'], df['학부n']))
+    print('\n[요강 ↔ 입시 데이터 학부 매칭 실패]')
+    yr.report_misses()
+    for u, f, why in yr.doc_facs_unmatched(pairs):
+        print(f'  [요강 학부에 데이터 없음] {u} / {f} — {why}')
     payload = {'built': date.today().isoformat(), 'source': src.name, 'years': {'r': [last - 4, last], 'a': [first, last]},
-               'rows': int(len(df)), 'univ': univ}
+               'rows': int(len(df)), 'yoko': sorted(yr.docs()), 'univ': univ}
     OUT.write_text("/* 자동 생성 — tools/schools_export.py. 합격 데이터 집계(이름·수험번호 없음). 학원 밖 공개 금지 */\n"
                    "window.SCHOOLS = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
     nf = sum(len(x['fac']) for x in univ)
