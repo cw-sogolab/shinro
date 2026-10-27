@@ -52,6 +52,44 @@
   const koName = u => { const a = KO.univ[u.s], b = KO.fac[u.f]; return a ? `${a} ${b || u.f}` : null; };
   const school = u => { const k = koName(u); return `<div class="ig-school">${k ? `<b>${esc(k)}</b><span class="ig-jp" lang="ja">${esc(u.s)} ${esc(u.f)}</span>` : `<b class="ig-jp" lang="ja">${esc(u.s)} ${esc(u.f)}</b>`}</div>`; };
 
+  /* ---------- 영어 성적 (토플·토익·IELTS) ---------- */
+  const ENG = window.ENG_RULES || {};
+  /* 2026-01-21부터 TOEFL iBT 는 1~6 밴드로도 표기된다. 밴드 → 예전 0~120 점수는 ETS 환산표의 아래쪽 끝(보수적)을 쓴다 */
+  const BAND_LOW = [[6.0, 114], [5.5, 107], [5.0, 95], [4.5, 82], [4.0, 69], [3.5, 55], [3.0, 42], [2.5, 30], [2.0, 18], [1.5, 12], [1.0, 0]];
+  const bandToIbt = b => (BAND_LOW.find(([k]) => b >= k) || [0, 0])[1];
+  /* 토플 칸 입력 → { t: iBT 0~120, b: 밴드 1~6 }. '92', '4.5', '5.0(100)', '80(4.0)' 모두 됨. 6.5 이하는 밴드, 7~120은 iBT 점수 */
+  function parseToefl(v) {
+    const out = {};
+    for (const m of String(v ?? '').match(/\d+(?:\.\d+)?/g) || []) { const x = +m; if (x <= 6.5) { if (out.b == null) out.b = x; } else if (x <= 120) { if (out.t == null) out.t = Math.round(x); } }
+    return out;
+  }
+  const engText = en => { en = en || {}; const t = en.t != null ? (en.b != null ? `${en.t}(${en.b})` : String(en.t)) : en.b != null ? String(en.b) : ''; return { t, x: en.x != null ? String(en.x) : '', i: en.i != null ? String(en.i) : '' }; };
+  const engSummary = en => [en && (en.t != null || en.b != null) ? `TOEFL ${engText(en).t}` : '', en && en.x != null ? `TOEIC ${en.x}` : '', en && en.i != null ? `IELTS ${en.i}` : ''].filter(Boolean).join(' · ');
+  /* 모집요강 한 전형·학부의 영어 요건을 학생 점수와 비교. st: ok 충족 · ng 미달 · no 점수 없음 · none 불필요 · check 요강 확인 */
+  function engJudge(doc, tr, un, en) {
+    en = en || (S && S.en) || {};
+    if (un.en === 'N') return { st: 'none', t: '불필요', why: '' };
+    const R = ENG[`${doc.id}/${tr.id}`], r = R && ((R.by_fac && R.by_fac[un.fac_ja]) || R.all);
+    if (un.en === 'U' || !r) return { st: 'check', t: '요강 확인', why: '' };
+    const have = { ibt: en.t != null || en.b != null, ielts: en.i != null, toeic: en.x != null };
+    const mine = r.accept.filter(k => have[k]), th = r.min || null, NAME = { ibt: 'TOEFL', ielts: 'IELTS', toeic: 'TOEIC' };
+    const tf = th && (th.band != null ? `TOEFL 밴드 ${th.band}${th.ibt != null ? ` (구 ${th.ibt}점)` : ''}` : th.ibt != null ? `TOEFL ${th.ibt}점` : '');
+    const req = `${r.accept.map(k => NAME[k]).join('·')}${r.accept.length > 1 ? ' 중 하나' : '만'} · ${th ? [r.accept.includes('ibt') ? tf : '', r.accept.includes('ielts') && th.ielts != null ? `IELTS ${th.ielts}` : '', r.accept.includes('toeic') && th.toeic != null ? `TOEIC ${th.toeic}` : ''].filter(Boolean).join(' / ') + ' 이상' : '기준점 없음 (제출 필수)'}`;
+    if (!mine.length) return { req, st: 'no', t: '점수 없음', why: (have.ibt || have.ielts || have.toeic) ? `인정 시험: ${r.accept.map(k => NAME[k]).join('·')}` : '영어 점수를 넣으면 판정', note: r.note };
+    if (!th) return { req, st: 'ok', t: '제출 가능', why: '기준점 없음 (제출 필수)', note: r.note };
+    const tries = mine.map(k => {
+      if (k === 'ielts') return th.ielts == null ? { ok: true, why: 'IELTS (기준 없음)' } : { ok: en.i >= th.ielts, why: `IELTS ${en.i} / ${th.ielts}` };
+      if (k === 'toeic') return th.toeic == null ? { ok: true, why: 'TOEIC (기준 없음)' } : { ok: en.x >= th.toeic, why: `TOEIC ${en.x} / ${th.toeic}` };
+      if (th.band == null && th.ibt == null) return { ok: true, why: 'TOEFL (기준 없음)' };
+      if (en.b != null && th.band != null) return { ok: en.b >= th.band, why: `TOEFL 밴드 ${en.b} / ${th.band}` };
+      if (en.t != null && th.ibt != null) return { ok: en.t >= th.ibt, why: `TOEFL ${en.t} / ${th.ibt}점` };
+      if (en.b != null) return { ok: bandToIbt(en.b) >= th.ibt, why: `TOEFL 밴드 ${en.b}(≈${bandToIbt(en.b)}점) / ${th.ibt}점` };
+      return { ok: en.t >= bandToIbt(th.band), why: `TOEFL ${en.t}점 / 밴드 ${th.band}(≈${bandToIbt(th.band)}점)` };
+    });
+    const good = tries.find(x => x.ok);
+    return good ? { req, st: 'ok', t: '충족', why: good.why, note: r.note } : { req, st: 'ng', t: '미달', why: tries.map(x => x.why).join(' · '), note: r.note };
+  }
+
   /* ---------- 상태 ---------- */
   const DEFAULT = { name: '예시 학생', kind: '문과', sci: ['phy', 'chem'], target: 'auto',
     rows: { m1: { jp: 290, so: 130, math: 120, ki: 35 }, m2: { jp: 305, so: 138, math: 128, ki: 35 }, e6: { jp: 318, so: 142, math: 135, ki: 40 }, m3: { jp: 320, so: 145, math: 140, ki: 40 }, m4: {}, e11: {} } };
@@ -60,7 +98,7 @@
   const STU = window.STUDENTS && window.STUDENTS.list && window.STUDENTS.list.length ? window.STUDENTS : null;
   /* dest: 불러온 뒤 갈 화면. 홈에서 부르면 'home'으로 그대로 머문다 */
   function loadStudent(st, dest = 'pred') {
-    S = { name: st.n, campus: st.c, kind: st.k, sci: st.sci && st.sci.length === 2 ? st.sci.slice() : ['phy', 'chem'], target: 'auto', src: 'xlsx',
+    S = { name: st.n, campus: st.c, kind: st.k, sci: st.sci && st.sci.length === 2 ? st.sci.slice() : ['phy', 'chem'], target: 'auto', src: 'xlsx', en: st.en ? { ...st.en } : {},
       rows: { m1: {}, m2: {}, e6: {}, m3: {}, m4: {}, e11: {}, ...JSON.parse(JSON.stringify(st.rows)) } };
     save(); if (dest === 'pred') store.set('sqFocus', true); go(dest);
   }
@@ -223,6 +261,12 @@
               <td>${e.type === 'mock' ? '<span class="ig-badge ig-badge--outline">모의고사</span>' : '<span class="ig-badge ig-badge--info">EJU</span>'}</td>
               ${subs.map(s => `<td class="num"><input class="ig-input" inputmode="numeric" data-r="${e.id}" data-s="${s}" value="${esc(S.rows[e.id]?.[s] ?? '')}" aria-label="${e.label} ${SUBJ[s]}"></td>`).join('')}
               <td class="num" data-tot="${e.id}"></td></tr>`).join('')}</tbody></table></div>
+          <div class="sh-en-in">
+            <span class="ig-field__label">영어 성적 (선택) <span class="ig-muted">· 모집요강의 영어 조건 판정에 쓰입니다</span></span>
+            <label class="ig-field"><span class="ig-field__label">TOEFL iBT</span><input class="ig-input" id="en-t" inputmode="decimal" placeholder="92 · 4.5 · 5.0(100)" value="${esc(engText(S.en).t)}" autocomplete="off"></label>
+            <label class="ig-field"><span class="ig-field__label">TOEIC</span><input class="ig-input" id="en-x" inputmode="numeric" placeholder="780" value="${esc(engText(S.en).x)}" autocomplete="off"></label>
+            <label class="ig-field"><span class="ig-field__label">IELTS</span><input class="ig-input" id="en-i" inputmode="decimal" placeholder="6.5" value="${esc(engText(S.en).i)}" autocomplete="off"></label>
+          </div>
           <p class="sh-note">모의고사는 학원 전국모의고사 변환점수, EJU는 실제 성적표 점수. 빈칸은 계산에서 빠집니다. 이름·점수는 이 컴퓨터 브라우저에만 저장됩니다.</p>
         </div>
       </section>
@@ -246,6 +290,11 @@
         <div style="margin-top:12px">${DISC}</div>
       </section>`;
 
+    const setEn = () => {
+      const t = parseToefl(document.getElementById('en-t').value), x = parseFloat(document.getElementById('en-x').value), i = parseFloat(document.getElementById('en-i').value);
+      S.en = { ...(t.t != null ? { t: t.t } : {}), ...(t.b != null ? { b: t.b } : {}), ...(x > 0 ? { x: Math.round(x) } : {}), ...(i > 0 ? { i } : {}) }; save();
+    };
+    ['en-t', 'en-x', 'en-i'].forEach(id => document.getElementById(id).oninput = setEn);
     document.getElementById('nm').oninput = e => { S.name = e.target.value; save(); document.getElementById('ptitle').textContent = S.name; };
     if (STU) bindStudentSearch();
     app.querySelectorAll('#kind button').forEach(b => b.onclick = () => { S.kind = b.value; save(); viewPred(); });
@@ -630,7 +679,7 @@
   function go(h) { if (location.hash.slice(1) === h) route(); else location.hash = h; }
   window.SH = { views: VIEWS, go, esc, icon, store, ISO, TODAY, parse, WD, md, fmt, range, dday, ddayOf, pct, yen, DISC, KO, Y, C, M,
     SUBJ, MAXS, ZK, zoneChip, school, koName, pagehead, sectionH, yokoFor, yokoByKey, curveFor, evalUnit, predict, examTotal,
-    cmpKeyForYoko, toggleCmp, addBtn, save, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
+    cmpKeyForYoko, toggleCmp, addBtn, save, engJudge, engSummary, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
   document.querySelectorAll('[data-t]').forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.t); });
   window.addEventListener('hashchange', route);
   const verEl = document.getElementById('ver'); if (verEl) verEl.textContent = `${C.version || 'v1'} · ${C.units.length}개`;

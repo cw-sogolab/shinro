@@ -350,3 +350,9 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-rs-who b { color: var(--ink); margin-right: 6px; }
 @media (max-width: 720px) { .sh-rs-who { grid-template-columns: 1fr; } }
 #rbody { display: flex; flex-direction: column; gap: var(--space-6); }
+
+/* 영어 성적 입력 · 판정 */
+.sh-en-in { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-4); align-items: flex-end; margin-top: var(--space-4); }
+.sh-en-in > .ig-field__label { flex-basis: 100%; }
+.sh-en-in .ig-field { max-width: 180px; }
+.sh-en__j { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; margin-top: 4px; }

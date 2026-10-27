@@ -8,11 +8,15 @@
 !! 실제 학생 이름·성적이 들어간다. .gitignore에 있음. 공개 저장소·공개 페이지·메신저로 내보내지 않는다.
    수험번호는 넣지 않는다.
 
-사용: python3 tools/students_export.py [--src <xlsx>]
+영어 성적(선택): --eng 2026_1회.xlsx 2026_2회.xlsx … (전국모의고사 결과 엑셀)의 「학생정보_2026_N회」 시트에서
+      이름으로 토플(iBT)·토익·IELTS 를 찾아 학생에 붙인다. 이름이 겹쳐 값이 서로 다르면 붙이지 않는다. 회차가 늦은 값이 앞선 값을 덮는다.
+
+사용: python3 tools/students_export.py [--src <xlsx>] [--eng <xlsx> ...]
 """
 import argparse
 import json
 import os
+import re
 import unicodedata
 from datetime import date
 from pathlib import Path
@@ -54,6 +58,69 @@ def num(v):
         return None
 
 
+# 2026년부터 TOEFL iBT 는 1~6 밴드로도 표기된다. ETS 환산표의 아래쪽 끝(보수적으로)을 점수 비교용으로 쓴다.
+BAND_LOW = [(6.0, 114), (5.5, 107), (5.0, 95), (4.5, 82), (4.0, 69), (3.5, 55), (3.0, 42), (2.5, 30), (2.0, 18), (1.5, 12), (1.0, 0)]
+
+
+def band_to_ibt(b):
+    return next(v for k, v in BAND_LOW if b >= k)
+
+
+def parse_toefl(v):
+    """토플 칸 → (iBT 0~120 점수 | None, 밴드 1~6 | None). '100', '5.0', '5.0(100)', '80(4.0)', '5n' 같은 표기를 모두 읽는다.
+    6.5 이하는 밴드, 7~120 은 iBT 점수, 120 초과(ITP 등)는 버린다."""
+    if v is None or isinstance(v, bool):
+        return None, None
+    nums = [float(x) for x in re.findall(r'\d+(?:\.\d+)?', str(v))]
+    ibt = band = None
+    for x in nums:
+        if x <= 6.5:
+            band = band if band is not None else x
+        elif x <= 120:
+            ibt = ibt if ibt is not None else x
+    return (round(ibt) if ibt is not None else None), band
+
+
+def eng_map(paths):
+    """모의고사 결과 엑셀들의 「학생정보_2026_N회」 → {이름: {'t': iBT, 'b': 밴드, 'x': 토익, 'i': IELTS}} (늦은 회차가 덮어씀)"""
+    found = []   # (회차, 이름, dict)
+    for path in paths:
+        wb = openpyxl.load_workbook(resolve(path), read_only=True, data_only=True)
+        for sn in wb.sheetnames:
+            m = re.match(r'학생정보_2026_(\d+)회$', nfc(sn))
+            if not m:
+                continue
+            R = list(wb[sn].iter_rows(values_only=True))
+            if not R:
+                continue
+            h = {nfc(str(c)).strip(): i for i, c in enumerate(R[0]) if c is not None}
+            if '이름' not in h or '토플' not in h:
+                continue
+            col = lambda r, k: r[h[k]] if k in h and h[k] < len(r) else None
+            rows = {}
+            for r in R[1:]:
+                n = nfc(col(r, '이름') or '').strip()
+                if not n:
+                    continue
+                t, b = parse_toefl(col(r, '토플'))
+                x, i = num(col(r, '토익')), num(col(r, 'IELTS'))
+                e = {k: v for k, v in (('t', t), ('b', b), ('x', round(x) if x and x > 0 else None), ('i', i if i and i > 0 else None)) if v is not None}
+                if e:
+                    rows.setdefault(n, []).append(e)
+            for n, L in rows.items():
+                if any(e != L[0] for e in L):   # 같은 이름의 값이 서로 다르면 누구 것인지 몰라 건너뜀
+                    found.append((int(m.group(1)), n, None))
+                else:
+                    found.append((int(m.group(1)), n, L[0]))
+    out = {}
+    for _, n, e in sorted(found, key=lambda x: x[0]):
+        if e is None:
+            out.pop(n, None)
+        else:
+            out[n] = {**out.get(n, {}), **e}
+    return out
+
+
 def sheet(ws, kind):
     R = [list(r) for r in ws.iter_rows(values_only=True)]
     hi = next(i for i, r in enumerate(R) if r and nfc(r[0] or "") == "이름")
@@ -89,6 +156,7 @@ def sheet(ws, kind):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=DEFAULT)
+    ap.add_argument("--eng", nargs="+", metavar="XLSX", help="전국모의고사 결과 엑셀 (토플·토익·IELTS 가 든 「학생정보_2026_N회」 시트)")
     a = ap.parse_args()
     src = resolve(a.src)
     wb = openpyxl.load_workbook(src, read_only=True, data_only=True)
@@ -106,6 +174,15 @@ def main():
         seen[k] = seen.get(k, 0) + 1
         if seen[k] > 1:
             s["n"] = f'{s["n"]} ({seen[k]})'
+    if a.eng:
+        em = eng_map(a.eng)
+        hit = 0
+        for s in lst:
+            e = em.get(s["n"])   # 이름이 겹쳐 「이름 (2)」가 된 학생은 누구 것인지 몰라 건너뜀
+            if e:
+                s["en"] = e
+                hit += 1
+        print(f"영어 성적: 시트에서 {len(em)}명 → 학생 {hit}명에게 붙임")
     payload = {"built": date.today().isoformat(), "source": src.name, "list": lst}
     OUT.write_text("/* 자동 생성 — tools/students_export.py. 실제 학생 이름·성적: 이 컴퓨터 밖으로 내보내지 않는다 (.gitignore) */\n"
                    "window.STUDENTS = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
