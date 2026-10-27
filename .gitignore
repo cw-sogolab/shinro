@@ -16,6 +16,7 @@ dist/
 docs/assets/model.js
 docs/assets/names_ko.js
 docs/assets/yoko_files.js
+docs/assets/results.js
 docs/assets/scoring.js
 .secret/
 CLAUDE.md

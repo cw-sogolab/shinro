@@ -333,3 +333,20 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-rpt .ig-chart svg { width: 100%; height: auto; display: block; }
 .sh-rpt .ig-chart text { font-size: 10px; }
 @media print { .sh-rpt { padding: 10mm 14mm 9mm; } .ig-main { padding: 0 !important; max-width: none !important; display: block !important; } .sh-rpt-bar { display: none !important; } }
+
+/* 학교 찾기: 영어 성적 칸 */
+.sh-en { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 150px; font-size: 12px; }
+.sh-en small { color: var(--ink-muted); font-size: 11px; line-height: 15px; }
+
+/* ---------- 입시 결과 ---------- */
+.sh-rs { margin-top: var(--space-3); }
+.sh-rs__grp { margin-bottom: var(--space-4); }
+.sh-rs__grp h3 { margin: 0 var(--space-3) var(--space-1); font-size: 13px; color: var(--ink-muted); font-weight: 600; }
+.sh-rs-filter { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; }
+.sh-rs-filter .ig-input { min-width: 96px; }
+.sh-rs-tab th.sh-rs-g { text-align: center; }
+.sh-rs-tab th.sh-rs-g--p { box-shadow: inset 3px 0 0 var(--brand); }
+.sh-rs-who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px var(--space-5); font-size: 12px; color: var(--ink-muted); }
+.sh-rs-who b { color: var(--ink); margin-right: 6px; }
+@media (max-width: 720px) { .sh-rs-who { grid-template-columns: 1fr; } }
+#rbody { display: flex; flex-direction: column; gap: var(--space-6); }

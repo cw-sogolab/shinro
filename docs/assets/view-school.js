@@ -126,6 +126,15 @@
   const vBadge = v => v ? `<span class="ig-badge ${v.cls ? 'ig-badge--' + v.cls : ''}">${v.t}</span>` : '<span class="ig-muted">—</span>';
   const curveOf = (u, f, kind) => C.units.find(c => c.s === u && c.f === f && c.k === kind) || null;
 
+  /* 학교 찾기 표의 「영어 성적」 칸: 모집요강(정리된 것)에서 이 학부가 요구하는 영어 시험 */
+  function enCell(y) {
+    if (!y) return '<span class="ig-muted" style="font-size:12px">요강 미등록</span>';
+    const un = y.unit, en = y.tr.english || {};
+    if (un.en === 'N') return '<span class="ig-muted">불필요</span>';
+    if (un.en === 'U') return '<span class="ig-muted" style="font-size:12px">요강에 언급 없음</span>';
+    return `<div class="sh-en"><span class="ig-badge ig-badge--${un.en === 'R' ? 'warning' : 'info'}">${un.en === 'R' ? '필요' : '선택'}</span> <span>${esc(en.tests || '')}</span>${en.min ? `<small>${esc(en.min)}</small>` : ''}</div>`;
+  }
+
   /* 학교·학부 하나를 학생 점수로 평가 */
   function evalFac(uo, fo, kind, per, E) {
     const k = fo.k[kind]; if (!k) return null;
@@ -263,7 +272,7 @@
           <label class="sh-check"><input type="checkbox" id="fsmall" ${store.get('fsmall', false) ? 'checked' : ''}>합격자 3명 미만도</label>
         </div>
         <div class="ig-card ig-card--flush"><div class="ig-table-wrap"><table class="ig-table ig-table--sticky sh-findtab">
-          <thead><tr><th>학교 · 학부</th><th class="num">합격 / 지원</th><th style="min-width:220px">합격자 점수대 <span class="ig-muted">(점 = 학생)</span></th><th>내 위치</th><th>합격 가능성</th><th>모집요강</th><th></th></tr></thead>
+          <thead><tr><th>학교 · 학부</th><th class="num">합격 / 지원</th><th style="min-width:220px">합격자 점수대 <span class="ig-muted">(점 = 학생)</span></th><th>내 위치</th><th>합격 가능성</th><th>영어 성적 <span class="ig-muted">(모집요강)</span></th><th>모집요강</th><th></th></tr></thead>
           <tbody id="frows"></tbody></table></div>
           <div class="ig-card__foot sh-row" style="justify-content:space-between"><span class="ig-muted" id="fcount" style="font-size:12px"></span><button type="button" class="ig-btn ig-btn--sm" id="fmore">더 보기</button></div></div>
         <p class="ig-disclaimer" style="margin-top:12px">${icon('info')}<span>합격자 점수대 = 그 학부에 실제 합격한 학원·제보 지원자의 EJU 점수(같은 계열, 6월·11월 중 높은 쪽). 막대: 가는 선 최저~최고, 상자 하위 25%~상위 25%, 굵은 선 중앙값. 참고용 · 합격을 보장하지 않음.</span></p>
@@ -334,9 +343,10 @@
           <td>${rangeBar(r.q, r.x != null ? Math.round(r.x) : null, r.set, true)}</td>
           <td>${vBadge(r.v)}</td>
           <td>${r.ch ? `<div class="ig-chance ig-chance--${SH.ZK[r.ch.z] || 'try'}" style="min-width:110px"><span class="ig-chance__bar"><i style="width:${Math.round(r.ch.p * 100)}%"></i></span><span class="ig-chance__pct">${SH.pct(r.ch.p)}</span></div>` : '<span class="ig-muted" style="font-size:12px">곡선 없음</span>'}</td>
+          <td>${enCell(r.y)}</td>
           <td>${r.y ? `<a class="ig-src" href="${r.y.link}">${icon('book', 'ig-icon--xs')} 요강</a>` : ''}</td>
           <td>${SH.addBtn(k, inC)}</td></tr>`;
-      }).join('') || `<tr><td colspan="7"><div class="ig-empty"><p>${E.vec.jp == null ? '위에 EJU 점수를 넣어 주세요. 점수 없이도 학교 이름으로 거를 수 있어요.' : '조건에 맞는 학부가 없습니다.'}</p></div></td></tr>`;
+      }).join('') || `<tr><td colspan="8"><div class="ig-empty"><p>${E.vec.jp == null ? '위에 EJU 점수를 넣어 주세요. 점수 없이도 학교 이름으로 거를 수 있어요.' : '조건에 맞는 학부가 없습니다.'}</p></div></td></tr>`;
       document.querySelectorAll('#frows [data-add]').forEach(b => b.onclick = () => SH.toggleCmp(b.dataset.add, () => drawRows(false)));
     }
     function drawTracks() {
