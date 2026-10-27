@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   const DATA = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];
-  const APP = ['app', 'view-yoko', 'view-mock', 'view-score', 'view-school', 'view-results'];
+  const APP = ['eng_rules', 'app', 'view-yoko', 'view-mock', 'view-score', 'view-school', 'view-results'];
   const A = 'assets/';
   const URL_ = (window.SHINRO_CONFIG || {}).API_URL || '';
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));

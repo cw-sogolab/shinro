@@ -129,10 +129,13 @@
   /* 학교 찾기 표의 「영어 성적」 칸: 모집요강(정리된 것)에서 이 학부가 요구하는 영어 시험 */
   function enCell(y) {
     if (!y) return '<span class="ig-muted" style="font-size:12px">요강 미등록</span>';
-    const un = y.unit, en = y.tr.english || {};
+    const un = y.unit, en = y.tr.english || {}, j = SH.engJudge(y.doc, y.tr, un);
     if (un.en === 'N') return '<span class="ig-muted">불필요</span>';
     if (un.en === 'U') return '<span class="ig-muted" style="font-size:12px">요강에 언급 없음</span>';
-    return `<div class="sh-en"><span class="ig-badge ig-badge--${un.en === 'R' ? 'warning' : 'info'}">${un.en === 'R' ? '필요' : '선택'}</span> <span>${esc(en.tests || '')}</span>${en.min ? `<small>${esc(en.min)}</small>` : ''}</div>`;
+    const B = { ok: 'success', ng: 'warning', no: '', check: '' }[j.st];
+    const full = [en.tests, en.min].filter(Boolean).join(' — ');   // 요강 원문 정리: 마우스를 올리면 보인다
+    return `<div class="sh-en" title="${esc(full)}"><span><span class="ig-badge ig-badge--${un.en === 'R' ? 'warning' : 'info'}">${un.en === 'R' ? '필요' : '선택'}</span> <span>${esc(j.req || en.tests || '')}</span></span>${!j.req && en.min ? `<small>${esc(en.min)}</small>` : ''}
+      <span class="sh-en__j"><span class="ig-badge${B ? ' ig-badge--' + B : ''}">${esc(j.t)}</span>${j.why ? `<small>${esc(j.why)}</small>` : ''}</span>${j.note ? `<small>${esc(j.note)}</small>` : ''}</div>`;
   }
 
   /* 학교·학부 하나를 학생 점수로 평가 */
@@ -384,7 +387,7 @@
           <tbody>${L.map(x => `<tr><td><a class="ig-school sh-schoollink" href="${x.doc.id ? `#yoko/s/${x.doc.id}/${x.tr.id}/${x.i}` : ''}"><b>${esc(nameU(x.doc.univ.ja))} ${esc(x.un.fac)}</b><span class="ig-jp" lang="ja">${esc(x.doc.univ.ja)} ${esc(x.un.fac_ja || '')}${x.un.dept ? ' · ' + esc(x.un.dept) : ''}</span></a></td>
             <td style="font-size:13px">${esc(x.tr.name_ko)}</td>
             <td><div class="ig-eju">${Object.keys(LAB).filter(k => ['R', 'C'].includes((x.un.eju || {})[k])).map(k => `<span class="${x.un.eju[k] === 'R' ? 'r' : 'c'}">${LAB[k]}${x.un.eju[k] === 'C' ? '(선택)' : ''}</span>`).join('')}</div></td>
-            <td>${enCell({ unit: x.un, tr: x.tr })}</td>
+            <td>${enCell({ doc: x.doc, unit: x.un, tr: x.tr })}</td>
             <td>${B[x.st]}<span class="sh-sub">${esc(x.why)}</span></td><td style="white-space:nowrap">${SH.md(x.apply.end || x.apply.start)} ${SH.dday(x.apply)}</td></tr>`).join('')}</tbody></table></div></div>`;
     }
     drawAll();
