@@ -201,8 +201,10 @@
             <label class="ig-field"><span class="ig-sr">학교·학부 검색</span><span class="ig-field__control">${icon('search', '')}<input class="ig-input" id="hq" type="search" placeholder="학교·학부 이름 (한국어·日本語) — 예: 호세이 경제, 早稲田 商" autocomplete="off"></span></label>
             <div class="sh-sugg sh-pop" id="hsugg" role="listbox" hidden></div>
           </div>
+          ${SH.hasStudents ? `<div class="sh-find" style="margin-top:12px">
+            <label class="ig-field"><span class="ig-field__label">학생 불러오기 · ${SH.studentCount}명 (이름을 치면 성적이 바로 채워집니다)</span><span class="ig-field__control">${icon('users', '')}<input class="ig-input" id="sq" type="search" placeholder="학생 이름 입력 후 Enter" autocomplete="off" aria-controls="ssugg"></span></label>
+            <div class="sh-sugg" id="ssugg" role="listbox" aria-label="찾은 학생"></div></div>` : ''}
           <div class="sh-row" style="margin-top:12px">
-            ${SH.hasStudents ? `<button type="button" class="ig-btn ig-btn--sm" id="hpick">${icon('users')}학생 불러오기</button>` : ''}
             <a class="ig-btn ig-btn--sm ig-btn--ghost" href="#find">${icon('edit')}EJU 점수 바로 입력</a>
           </div>
         </div>
@@ -223,7 +225,7 @@
       </div>
       ${SH.DISC}`;
     bindSearch(document.getElementById('hq'), document.getElementById('hsugg'));
-    const hp = document.getElementById('hpick'); if (hp) hp.onclick = () => { store.set('sqFocus', true); SH.go('pred'); };
+    if (SH.hasStudents) SH.bindStudentSearch(document.getElementById('sq'), document.getElementById('ssugg'), 'home');
   }
 
   /* ============================================================

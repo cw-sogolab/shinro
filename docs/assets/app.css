@@ -307,3 +307,29 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-ref .sh-col__head{gap:8px}
 .sh-ref__list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));max-height:460px;overflow:auto}
 .sh-rec--ref .ig-chance{opacity:.5;filter:grayscale(1)}
+
+/* ---------- 상담 리포트 (A4 한 장 · 인쇄하면 PDF) ---------- */
+.sh-rpt-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 794px; margin: 0 auto; }
+.sh-rpt { -webkit-print-color-adjust: exact; print-color-adjust: exact; gap: 12px; padding-top: 36px; padding-bottom: 28px; }
+.sh-rpt-mute { color: #4a4a47; font-size: 11px; font-weight: 400; }
+.sh-rpt h2 .sh-rpt-mute { margin-left: 6px; }
+.sh-rpt-two { display: grid; grid-template-columns: 400px 1fr; gap: 14px; align-items: start; }
+.sh-rpt-total { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.sh-rpt-total b { font-size: 26px; line-height: 30px; font-variant-numeric: tabular-nums; }
+.sh-rpt .ig-school { display: flex; flex-direction: row; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-rpt .ig-school b { font-size: 12px; } .sh-rpt .ig-school .ig-jp { font-size: 10.5px; color: #4a4a47; }
+.sh-rpt td, .sh-rpt th { padding: 2px 6px; line-height: 18px; }
+.sh-rpt-ct .ig-school { min-width: 0; }
+.sh-rpt-scn { display: grid; gap: 12px; }
+.sh-rpt-sh { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 6px; background: #efefec; font-size: 12px; }
+.sh-rpt-sh span { color: #4a4a47; font-variant-numeric: tabular-nums; }
+.sh-rpt-tb { table-layout: fixed; }
+.sh-rpt-tb td.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-rpt-tb td.num { width: 44px; }
+.sh-rpt-tb tr.zh td { border-bottom: 0; padding-top: 4px; }
+.sh-rpt-curves { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.sh-rpt-ct { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
+.sh-rpt-ct > span { white-space: nowrap; font-size: 12px; }
+.sh-rpt .ig-chart svg { width: 100%; height: auto; display: block; }
+.sh-rpt .ig-chart text { font-size: 10px; }
+@media print { .sh-rpt { padding: 10mm 14mm 9mm; } .ig-main { padding: 0 !important; max-width: none !important; display: block !important; } .sh-rpt-bar { display: none !important; } }
