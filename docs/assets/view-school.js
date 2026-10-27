@@ -156,7 +156,7 @@
   function yokoOf(u, f) {
     if (!Y) return null;
     const doc = Y.docs.find(d => d.univ.ja === u); if (!doc) return null;
-    const fk = v => String(v || '').replace(/・/g, '').replace(/探究/g, '探求').replace(/(学部|学群)$/, '');
+    const fk = v => String(v || '').replace(/・/g, '').replace(/探究/g, '探求').replace(/糧/g, '料').replace(/(学部|学群)$/, '');
     const cf = fk(String(f || '').split('-')[0]);
     for (const tr of doc.tracks) {
       const i = tr.units.findIndex(x => { const yf = fk(x.fac_ja); return yf && (yf === cf || cf.startsWith(yf) || yf.startsWith(cf)); });

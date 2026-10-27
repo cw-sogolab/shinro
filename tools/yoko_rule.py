@@ -47,7 +47,7 @@ def docs():
 
 def _fk(s):
     """학부 이름 비교용: 끝의 学部·学群, 가운뎃점, 探究/探求 표기 차이를 없앤다 (view-school.js yokoOf 와 같은 규칙)"""
-    return re.sub('学部$|学群$', '', _nk(s).replace('・', '').replace('探究', '探求'))
+    return re.sub('学部$|学群$', '', _nk(s).replace('・', '').replace('探究', '探求').replace('糧', '料'))
 
 
 def fac_match(data_fac, fac_ja):
