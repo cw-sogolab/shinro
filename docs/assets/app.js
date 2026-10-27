@@ -132,7 +132,7 @@
   function subjects() { return S.kind === '문과' ? ['jp', 'so', 'math', 'ki'] : ['jp', S.sci[0], S.sci[1], 'math', 'ki']; }
   function parts() { return S.kind === '문과' ? ['jp', 'so', 'math'] : ['jp', S.sci[0], S.sci[1], 'math']; }
   function hasRow(id) { const r = S.rows[id] || {}; return subjects().some(s => r[s] !== '' && r[s] != null && !isNaN(+r[s])); }
-  function autoTarget() { return hasRow('e11') ? 'a11' : hasRow('e6') ? 'e11' : 'e6'; }
+  function autoTarget() { return hasRow('e11') ? 'a11' : (hasRow('e6') || hasRow('m3') || hasRow('m4')) ? 'e11' : 'e6'; }   // 6월 EJU 점수나 모의 3·4회가 있으면 다음 시험은 11월
   /* 과목별 예측 점수 → 조합 점수 계산에 쓰는 벡터 */
   function vecFrom(P) {
     const sc = S.sci;
