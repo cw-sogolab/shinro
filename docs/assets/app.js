@@ -189,7 +189,7 @@
     const seg = (id, items, on, label) => `<div class="ig-seg" role="group" aria-label="${label}" id="${id}">${items.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${on(v)}">${l}</button>`).join('')}</div>`;
     app.innerHTML = `
       ${pagehead('진학 상담 · 예측·추천', esc(S.name), S.src ? `${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · 「${esc(STU.source)}」(${esc(STU.built)} 기준)에서 불러옴 · 점수를 고치면 이 화면에서만 바뀜` : `${S.kind} · 성적 → 다음 EJU 예측 → 안정·적정·도전 추천 → 비교에 담기`,
-        `<a class="ig-btn" href="#curve">${icon('chart')}합격 곡선 모아 보기</a><button type="button" class="ig-btn ig-btn--ghost" id="reset">${icon('edit')}예시 점수로 되돌리기</button>`)}
+        `<a class="ig-btn" href="#report">${icon('file')}상담 리포트 (PDF)</a><a class="ig-btn" href="#curve">${icon('chart')}합격 곡선 모아 보기</a><button type="button" class="ig-btn ig-btn--ghost" id="reset">${icon('edit')}예시 점수로 되돌리기</button>`)}
       <section>
         ${sectionH(1, '성적', '모의고사와 EJU를 따로 표시 · 본 시험만 입력')}
         <div class="ig-card">
@@ -247,6 +247,11 @@
     drawPred();
   }
 
+  /* 예측 총점의 「보통」 범위 [lo, hi] — 예측이 없으면 [null, null] */
+  function predRange(P) {
+    if (P.total == null) return [null, null];
+    return [Math.max(0, Math.round(P.total - P.sd)), Math.min(Math.round(P.total + P.sd), parts().reduce((t, q) => t + (REALMAX[q] || MAXS[q]), 0))];
+  }
   function drawPred() {
     const P = predict(), box = document.getElementById('predbox'); if (!box) return;
     app.querySelectorAll('[data-tot]').forEach(td => { const t = examTotal(td.dataset.tot); td.innerHTML = t == null ? '<span class="ig-muted">—</span>' : `<b>${t}</b>`; });
@@ -255,7 +260,7 @@
     document.getElementById('predmeta').textContent = `${tl.replace(' 점수', '')} · ${used ? used + ' 반영' : '반영한 시험 없음'}`;
     const opts = [['auto', '자동'], ['e6', '6월 예측'], ['e11', '11월 예측'], ['a11', '11월 실제']];
     const segHtml = `<div class="sh-target"><span class="ig-field__label">예측 기준</span><div class="ig-seg" role="group" aria-label="예측 기준" id="tgt">${opts.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${S.target === v}">${l}</button>`).join('')}</div></div>`;
-    const lo = P.total == null ? null : Math.max(0, Math.round(P.total - P.sd)), hi = P.total == null ? null : Math.min(Math.round(P.total + P.sd), parts().reduce((t, q) => t + (REALMAX[q] || MAXS[q]), 0));
+    const [lo, hi] = predRange(P);
 
     if (P.total == null) {
       box.innerHTML = `<div class="ig-card__head"><div><h3 class="ig-card__title">${tl}</h3></div></div>
@@ -282,19 +287,24 @@
     drawRec(P);
   }
 
-  function drawTrend(P, lo, hi) {
-    const el = document.getElementById('trend'); if (!el) return;
+  /* 성적 추이 차트 옵션 (예측·추천 화면과 상담 리포트가 같이 씀). 그릴 점수가 하나도 없으면 null */
+  function trendOpts(P, lo, hi, narrow) {
     const pi = P.total == null || P.target === 'a11' ? -1 : P.target === 'e6' ? 2 : 5;
     const me = EXAMS.map((e, i) => i === pi ? null : examTotal(e.id));
     const vals = me.filter(v => v != null).concat(pi >= 0 ? [lo, hi] : []);
-    document.getElementById('trendsub').textContent = `${S.kind} 총점 · 모의고사는 변환점수`;
-    if (!vals.length) { el.innerHTML = `<div class="ig-empty">${icon('chart', '')}<b>점수를 넣으면 추이가 보여요</b></div>`; return; }
+    if (!vals.length) return null;
     const min = Math.max(0, Math.floor((Math.min(...vals) - 30) / 50) * 50), max = Math.min(800, Math.ceil((Math.max(...vals) + 30) / 50) * 50);
     const known = EXAMS.map((e, i) => me[i] != null ? `${e.short} ${me[i]}점` : null).filter(Boolean).join(', ');
-    const narrow = el.clientWidth < 520;
-    IG.trendChart(el, { labels: EXAMS.map(e => narrow ? e.tiny : e.short), me, min, max: max === min ? min + 100 : max,
+    return { labels: EXAMS.map(e => narrow ? e.tiny : e.short), me, min, max: max === min ? min + 100 : max,
       pred: pi >= 0 ? { i: pi, point: Math.round(P.total), lo, hi } : null,
-      label: `${S.kind} 총점 추이: ${known || '입력 없음'}${pi >= 0 ? `. ${EXAMS[pi].short} 예상 ${Math.round(P.total)}점(보통 ${lo}~${hi})` : ''}` });
+      label: `${S.kind} 총점 추이: ${known || '입력 없음'}${pi >= 0 ? `. ${EXAMS[pi].short} 예상 ${Math.round(P.total)}점(보통 ${lo}~${hi})` : ''}` };
+  }
+  function drawTrend(P, lo, hi) {
+    const el = document.getElementById('trend'); if (!el) return;
+    document.getElementById('trendsub').textContent = `${S.kind} 총점 · 모의고사는 변환점수`;
+    const o = trendOpts(P, lo, hi, el.clientWidth < 520);
+    if (!o) { el.innerHTML = `<div class="ig-empty">${icon('chart', '')}<b>점수를 넣으면 추이가 보여요</b></div>`; return; }
+    IG.trendChart(el, o);
   }
 
   let lastPred = null;
@@ -451,11 +461,15 @@
     document.querySelectorAll('#clist button').forEach(a => a.onclick = () => { sel = +a.dataset.i; drawList(); drawCurve(); });
     const cur = document.querySelector('#clist [aria-current="true"]'); if (cur && !q) { const L = document.getElementById('clist'); L.scrollTop = cur.offsetTop - L.offsetTop - 8; }
   }
-  function drawCurve() {
-    const u = C.units[sel], P = predict(), yk = yokoFor(u), m = p50(u), k = ukey(u);
+  /* 곡선 그래프의 가로 범위와 학생 점수·오차 (곡선 화면과 상담 리포트 공용) */
+  function curveRange(u, P) {
     const x = setScore(P, u.set), sd = setSd(P, u.set);
     const xs = u.bins.map(b => b[0]).concat(x != null ? [x - sd, x + sd] : []);
-    const lo = Math.max(0, Math.floor((Math.min(...xs) - 40) / 50) * 50), hi = Math.min(u.max, Math.ceil((Math.max(...xs) + 40) / 50) * 50);
+    return { x, sd, lo: Math.max(0, Math.floor((Math.min(...xs) - 40) / 50) * 50), hi: Math.min(u.max, Math.ceil((Math.max(...xs) + 40) / 50) * 50) };
+  }
+  function drawCurve() {
+    const u = C.units[sel], P = predict(), yk = yokoFor(u), m = p50(u), k = ukey(u);
+    const { x, sd, lo, hi } = curveRange(u, P);
     const r = x != null ? evalUnit(u, P) : null;
     document.getElementById('cview').innerHTML = `
       <div class="ig-card__head"><div>${school(u)}<p class="ig-card__sub" style="margin-top:6px">${u.k} · 비교 점수 = ${SETLAB[u.set]} (${u.max}점 만점) · ${u.r === '최고' ? '6월·11월 중 높은 점수' : u.r + ' 점수'}</p></div>
@@ -475,6 +489,61 @@
       you: x != null ? { score: Math.round(x), lo: Math.max(lo, Math.round(x - sd)), hi: Math.min(hi, Math.round(x + sd)), p: pAt(u, x, sd) } : null,
       label: `${koName(u) || u.s + ' ' + u.f} 합격 가능성 곡선. 반반 점수 ${m ?? '만점 넘음'}${x != null ? `, 학생 예상 ${Math.round(x)}점에서 ${pct(pAt(u, x, sd))}` : ''}` });
     document.getElementById('cadd').onclick = () => toggleCmp(k, drawCurve);
+  }
+
+  /* ---------- 상담 리포트: 모의고사 예측·추천 + 합격 곡선을 A4 한 장으로 (인쇄 창에서 「PDF로 저장」) ---------- */
+  const RPT_PER_ZONE = 3, RPT_CURVES = 4;
+  function viewReport() {
+    const P = predict();
+    if (P.total == null) {
+      app.innerHTML = pagehead('진학 상담 · 상담 리포트', esc(S.name), '') + `<div class="ig-card ig-empty">${icon('trend', '')}<b>아직 예측할 수 없어요</b><p>모의고사나 EJU 점수를 넣으면 리포트를 만들 수 있어요.</p><a class="ig-btn ig-btn--primary" href="#pred">예측·추천으로 가기</a></div>`;
+      return;
+    }
+    const [lo, hi] = predRange(P), isAct = P.target === 'a11';
+    const all = C.units.filter(u => u.k === S.kind || u.k === '일본어만').map(u => evalUnit(u, P)).filter(r => r && r.z);
+    const main = all.filter(r => !r.weak), nref = all.length - main.length;
+    const by = z => main.filter(r => r.z === z).sort((a, b) => (b.m ?? -1) - (a.m ?? -1) || b.p - a.p);
+    const lists = Object.fromEntries(ZONES.map(([z]) => [z, by(z)]));
+    // 곡선을 보여 줄 학교: 비교에 담은 학교(곡선 있는 것) 우선, 없으면 적정 2 · 도전 1 · 안정 1 순으로 고름
+    const fromCmp = cmp.map(cmpItem).filter(it => it && it.u).map(it => evalUnit(it.u, P)).filter(Boolean).slice(0, RPT_CURVES);
+    let picks = fromCmp;
+    if (!picks.length) {
+      const q = { 적정: lists.적정.slice(), 도전: lists.도전.slice(), 안정: lists.안정.slice() };
+      picks = [...q.적정.splice(0, 2), ...q.도전.splice(0, 1), ...q.안정.splice(0, 1)];
+      for (const z of ['적정', '도전', '안정']) while (picks.length < RPT_CURVES && q[z].length) picks.push(q[z].shift());
+    }
+    const sdOf = s => P.sd ? P.sd * (SUBJ_SD[s] || 10) / Math.sqrt(P.fullVar) : 0;
+    const subRow = s => { const v = P.subj[s]; if (!v) return `<tr><td>${SUBJ[s]}</td><td class="num">—</td><td class="num">—</td></tr>`; const d = sdOf(s);
+      return `<tr><td>${SUBJ[s]} <span class="sh-rpt-mute">/${MAXS[s]}</span></td><td class="num"><b>${Math.round(v.fin)}</b></td><td class="num">${d ? `${Math.max(0, Math.round(v.fin - d))}~${Math.min(REALMAX[s] || MAXS[s], Math.round(v.fin + d))}` : '실제'}</td></tr>`; };
+    const recRows = ZONES.map(([z]) => { const L = lists[z]; if (!L.length) return `<tr><td>${zoneChip(z)}</td><td colspan="4" class="sh-rpt-mute">해당 학부 없음</td></tr>`;
+      return L.slice(0, RPT_PER_ZONE).map((r, i) => `<tr>${i === 0 ? `<td rowspan="${Math.min(L.length, RPT_PER_ZONE)}">${zoneChip(z)}<div class="sh-rpt-mute">${L.length}곳 중 상위</div></td>` : ''}<td>${school(r.u)}</td><td class="num"><b>${pct(r.p)}</b></td><td class="num">${r.m ?? '—'}</td><td class="num">${SETLAB[r.u.set]} ${r.x}</td></tr>`).join(''); }).join('');
+    const trend = trendOpts(P, lo, hi, true);
+    const dateTxt = `${TODAY.getFullYear()}년 ${md(ISO)}`;
+    app.innerHTML = `
+      <div class="ig-noprint sh-rpt-bar"><div><b>상담 리포트</b> <span class="ig-muted">A4 한 장 · 인쇄 창에서 「대상: PDF로 저장」을 고르세요</span></div>
+        <div class="sh-row"><a class="ig-btn" href="#pred">${icon('trend')}예측·추천으로</a><button type="button" class="ig-btn ig-btn--primary" id="rprint">${icon('file')}PDF로 저장</button></div></div>
+      <div class="ig-sheet-wrap"><article class="ig-sheet sh-rpt">
+        <div class="ig-sheet__head"><div><h1>상담 리포트 · ${esc(S.name)}</h1><div class="sh-rpt-mute">${dateTxt} · ${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · ${TGT_LABEL[P.target].replace(' 점수', '')}</div></div><img class="ig-logo--light" src="../design/assets/ilgong-logo.png" alt="일공학원"></div>
+        <section><h2>1. 성적 추이와 다음 EJU 예측</h2>
+          <div class="sh-rpt-two"><div class="ig-chart" id="rtrend"></div>
+            <div><div class="sh-rpt-total"><span class="sh-rpt-mute">${isAct ? '11월 EJU 총점' : '예상 총점'} (기술 제외)</span><b>${Math.round(P.total)}</b><span>${isAct ? '점 · 실제' : `점 · 보통 ${lo}~${hi}`}</span></div>
+              <table><thead><tr><th>과목</th><th class="num">${isAct ? '점수' : '예상'}</th><th class="num">${isAct ? '' : '보통 범위'}</th></tr></thead><tbody>${parts().map(subRow).join('')}</tbody></table></div></div></section>
+        <section><h2>2. 추천 학교 <span class="sh-rpt-mute">합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
+          <table><thead><tr><th>구간</th><th>학교 · 학부</th><th class="num">합격 가능성</th><th class="num">반반 점수</th><th class="num">학생 점수</th></tr></thead><tbody>${recRows}</tbody></table></section>
+        <section><h2>3. 합격 곡선 <span class="sh-rpt-mute">${fromCmp.length ? '비교에 담은 학교' : '추천 학교 가운데 상담할 만한 곳'} · 점 = 실제 합격 비율 · 세로선 = 학생 예측</span></h2>
+          <div class="sh-rpt-curves">${picks.length ? picks.map((r, i) => `<div><div class="sh-rpt-ct">${school(r.u)}<span>${zoneChip(r.z)} <b>${pct(r.p)}</b></span></div><div class="ig-chart" id="rc${i}"></div></div>`).join('') : '<p class="sh-rpt-mute">곡선이 있는 추천 학교가 없습니다.</p>'}</div></section>
+        <div class="ig-sheet__foot">참고용 · 합격을 보장하지 않음 · 최종 판단은 상담 강사와 함께 합니다. 예측 점수는 범위로 보며, 합격 가능성은 과거 비슷한 점수 지원자 중 합격한 비율입니다.${nref ? ` 점수만으로 잘 갈리지 않거나 자료가 적은 ${nref}개 학부는 이 표에서 뺐습니다.` : ''} 학원 내부 자료 · 외부 반출 금지.</div>
+      </article></div>`;
+    const tc = document.getElementById('rtrend');
+    if (trend) IG.trendChart(tc, { ...trend, labels: EXAMS.map(e => e.tiny), width: 400, height: 150 }); else tc.innerHTML = '';
+    picks.forEach((r, i) => { const u = r.u, c = curveRange(u, P), m = p50(u);
+      IG.passCurve(document.getElementById('rc' + i), { lo: c.lo, hi: c.hi, a: u.a, b: u.b, shift: C.shift, bins: u.bins, width: 340, height: 135, xstep: 100,
+        you: c.x != null ? { score: Math.round(c.x), lo: Math.max(c.lo, Math.round(c.x - c.sd)), hi: Math.min(c.hi, Math.round(c.x + c.sd)), p: pAt(u, c.x, c.sd) } : null,
+        label: `${koName(u) || u.s + ' ' + u.f} 합격 가능성 곡선. 반반 점수 ${m ?? '만점 넘음'}` }); });
+    document.getElementById('rprint').onclick = () => {
+      const old = document.title; document.title = `상담리포트_${S.name}_${ISO}`;   // 크롬은 이 제목을 PDF 파일 이름으로 쓴다
+      window.addEventListener('afterprint', () => { document.title = old; }, { once: true }); window.print();
+    };
   }
 
   /* ---------- 탭 5: 검증 ---------- */
@@ -505,12 +574,12 @@
   }
 
   /* ---------- 라우터 · 다른 탭과 나누는 도우미 ---------- */
-  const VIEWS = { pred: viewPred, cmp: viewCmp, curve: viewCurve, how: viewHow };
+  const VIEWS = { pred: viewPred, cmp: viewCmp, curve: viewCurve, how: viewHow, report: viewReport };
   function route() {
     const [path, qs] = location.hash.slice(1).split('?'); const parts = path.split('/').filter(Boolean);
     let t = parts[0] || 'home'; if (!VIEWS[t]) t = 'home';
     const prev = tab; tab = t;
-    const nt = { curve: 'pred', school: 'find' }[t] || t;
+    const nt = { curve: 'pred', school: 'find', report: 'pred' }[t] || t;
     document.querySelectorAll('.ig-appbar__nav a[data-t]').forEach(a => a.dataset.t === nt ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
     const keep = VIEWS[t](parts.slice(1), new URLSearchParams(qs || ''));
     if (keep !== 'keep') window.scrollTo(0, 0);
