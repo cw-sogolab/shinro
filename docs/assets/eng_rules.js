@@ -723,5 +723,43 @@ window.ENG_RULES = {
   /* yokohamabijutsu */
 // 요코하마미술대학 (yokohamabijutsu) — 외국인유학생 입시는 영어 외부시험 요건 없음
   'yokohamabijutsu-2027/1ki': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
-  'yokohamabijutsu-2027/2ki': { all: { accept: [], note: '영어 외부시험 요건 없음' } }
+  'yokohamabijutsu-2027/2ki': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* aomori */
+// 아오모리공립대학 (aomori) — 종합형선발Ⅱ 외국인유학생 특별선발: TOEFL 또는 TOEIC L&R 점수 제출 필수, 기준점 없음
+  'aomori-2027/gaikokujin': { all: { accept: ['ibt', 'toeic'], note: 'TOEFL 또는 TOEIC L&R 점수 제출 필수 · 기준점 요강에 없음(면접 참고 자료). TOEFL 종류(iBT 외 가능 여부)와 유효 기간은 요강에 명시 없음' } },
+  /* dokkyo */
+// 독쿄대학 (dokkyo) — 출원 자격 기준표(학과별). TOEIC은 L&R+S&W 합계 요구라 판정 제외. by_fac는 학부 단위라 외국어학부는 가장 낮은 기준(독·불어학과) 사용
+  'dokkyo-2027/global': { all: { accept: [], note: '영어 기준 없음(경제학부 경제·경영학과, 법학부)' }, by_fac: {
+    '外国語学部': { accept: ['ibt', 'ielts'], min: { ibt: 42, band: 2.5, ielts: 4.0 }, note: '학과별 상이: 독일어·프랑스어학과 iBT 2.5(구 42)·IELTS 4.0, 영어학과·교류문화학과 iBT 3.5(구 58)·IELTS 4.5(영어·교류문화는 이 기준이 필요). TOEIC L&R+S&W 합계(790/950)는 판정 제외' },
+    '国際教養学部': { accept: ['ibt', 'ielts'], min: { ibt: 47, band: 3.0, ielts: 4.0 }, note: '언어문화학과. TOEIC L&R+S&W 800 합계는 판정 제외' },
+    '経済学部': { accept: ['ibt', 'ielts'], min: { ibt: 57, band: 3.0, ielts: 4.5 }, note: '국제환경경제학과만 해당(경제·경영학과는 기준 없음). TOEIC L&R+S&W 790 합계는 판정 제외. 요강 표의 iBT 구 점수 57은 원문 그대로' } } },
+  /* ehimeken */
+// 에히메현립의료기술대학 (ehimeken) — 영어 외부시험 요건 없음 (소논문에 영문 독해 출제)
+  'ehimeken-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (소논문에 영문 독해 출제, 영작문 아님)' } },
+  /* hamamatsu — 규칙 없음 */
+  /* osakakeizai */
+// 오사카경제대학 (osakakeizai) — 영어 외부시험 요건 없음
+  'osakakeizai-2027/kokusai': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* takeo */
+// 타케오아시아대학 (takeo) — 영어 외부시험 요건 없음
+  'takeo-2027/r1': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'takeo-2027/r2': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'takeo-2027/r3': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'takeo-2027/r4': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'takeo-2027/r5': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* tokushima */
+// 토쿠시마대학 (tokushima) — 사비외국인유학생 선발(일본 내 시험). 도일전 전형(dojonzen)은 영어 외부시험 요건이 요강에 없어 규칙 없음
+  'tokushima-2027/kokunai': { by_fac: {
+    '総合科学部': { accept: ['ibt', 'ielts', 'toeic'], min: { toeic: 350, ibt: 39, band: 2.5, ielts: 3.5 }, note: '영검 1,700 / 케임브리지 120도 인정(판정 불가). 5종 중 하나 충족. TOEFL iBT는 2025-01 이후 응시분, 그 밖은 출원 최종일에 유효한 것' },
+    '医学部': { accept: ['ibt'], min: { ibt: 80, band: 4.5 }, note: '医学科 기준(TOEFL iBT 총합 4.5 / 2026-01-20 이전 응시 80점). 保健学科 看護学専攻는 TOEFL 제출만 필수(기준점 없음), 放射線技術科学·検査技術科学 전공은 TOEFL 불요. 2025-01 이후 응시분' },
+    '歯学部': { accept: ['ibt'], min: { ibt: 80, band: 4.5 }, note: 'TOEFL iBT 총합 4.5 / 2026-01-20 이전 응시 80점. 2025-01 이후 응시분' },
+    '薬学部': { accept: ['ibt'], min: { ibt: 80, band: 4.5 }, note: 'TOEFL iBT 총합 4.5 / 2026-01-20 이전 응시 80점. 2025-01 이후 응시분' },
+    '理工学部': { accept: ['ibt'], note: 'TOEFL iBT 제출 필수 · 성적 기준 지정 없음. 2025-01 이후 응시분' },
+    '生物資源産業学部': { accept: ['ibt'], note: 'TOEFL iBT 제출 필수 · 성적 기준 지정 없음. 2025-01 이후 응시분' } } },
+  /* tottorikankyo */
+// 톳토리환경대학 (tottorikankyo) — 영어 외부시험 요건 없음 (JLPT CEFR B2 이상이 출원 자격)
+  'tottorikankyo-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (일본어 JLPT CEFR B2 이상 필요)' } },
+  /* keio_add */
+// 케이오 의학부 추가 전형 (keio) — TOEFL iBT 또는 IELTS Academic 필수, 기준점 없음
+  'keio-2027/igaku': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 · 구·신 TOEFL 모두 제출 가능. 2024-09-01 ~ 2026-06-30 응시, Official Score 직송 필수 (TOEFL 기관코드 0773)' } }
 };
