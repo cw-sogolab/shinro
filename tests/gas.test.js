@@ -68,6 +68,12 @@ t('students.js 가 폴더에 있으면 같이 내려오고, 없어도 오류 아
   const d = JSON.parse(zlib2.gunzipSync(Buffer.from(r.gz, 'base64')).toString()); assert.ok(d.order.includes('students'));
   const g2 = mk(); const d2 = JSON.parse(zlib2.gunzipSync(Buffer.from(g2.call('data', { code: CODE_A }).gz, 'base64')).toString()); assert.ok(!d2.order.includes('students'));
 });
+t('results.js(입시 결과)도 폴더에 있을 때만 같이 내려옴', () => {
+  const zlib2 = require('zlib');
+  const files = {}; NAMES.forEach(n => files[n + '.js'] = FILES[n + '.js']); files['results.js'] = 'window.RESULTS={};';
+  const d = JSON.parse(zlib2.gunzipSync(Buffer.from(load(files).call('data', { code: CODE_A }).gz, 'base64')).toString());
+  assert.ok(d.order.includes('results')); assert.strictEqual(d.order[d.order.length - 1], 'results');
+});
 t('모르는 action·깨진 요청', () => { const g = mk(); assert.strictEqual(g.call('dump', { code: CODE_A }).error, 'unknown'); assert.strictEqual(JSON.parse(g.sb.doPost({ postData: { contents: '{' } }).s).error, 'bad_request'); });
 t('속성이 비어 있으면(CODE_HASHES 없음) 아무 코드도 안 열림', () => { const g = mk(); g.props.CODE_HASHES = ''; assert.strictEqual(g.call('check', { code: CODE_A }).error, 'bad'); });
 console.log(passed + '개 통과');

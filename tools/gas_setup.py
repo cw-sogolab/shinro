@@ -3,7 +3,7 @@
 
  1. 접속 코드 둘(원장님·본인)을 만든다 → .secret/codes.json  (이미 있으면 그대로 씀, --new 로 새로 만들기. 코드는 레포·메신저 금지)
  2. 코드의 해시와 Code.gs 를 합쳐 붙여넣기용 .secret/설치용_Code.gs 를 만든다 (해시가 들어 있으니 레포에 올리지 말 것)
- 3. --export <폴더> : docs/assets 의 데이터 js 9개를 그 폴더(이름 「진학상담_데이터」)에 복사 → 구글 드라이브 내 드라이브에 통째로 올린다
+ 3. --export <폴더> : docs/assets 의 데이터 js 9개(+있으면 results.js)를 그 폴더(이름 「진학상담_데이터」)에 복사 → 구글 드라이브 내 드라이브에 통째로 올린다
 설치 순서와 확인 방법은 README.md.
 """
 import argparse, hashlib, json, re, secrets, shutil, sys
@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 NAMES = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring']
+OPTIONAL = ['results']   # 있으면 같이 복사 (tools/results_export.py 로 만듦)
 ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'   # 헷갈리는 글자(0 O 1 I) 뺌 — 12자 = 60비트
 
 
@@ -57,6 +58,10 @@ def main():
             if not src.exists():
                 sys.exit(f'없음: {src}')
             shutil.copy2(src, dst / f'{n}.js')
+        for n in OPTIONAL:
+            src = ROOT / 'docs' / 'assets' / f'{n}.js'
+            if src.exists():
+                shutil.copy2(src, dst / f'{n}.js')
         print('데이터 폴더:', dst, f'({sum((dst / (n + ".js")).stat().st_size for n in NAMES) / 1e6:.1f}MB)')
     for k, v in codes.items():
         print(f'  {k}: {v}')

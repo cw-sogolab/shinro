@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   const DATA = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];
-  const APP = ['app', 'view-yoko', 'view-mock', 'view-score', 'view-school'];
+  const APP = ['app', 'view-yoko', 'view-mock', 'view-score', 'view-school', 'view-results'];
   const A = 'assets/';
   const URL_ = (window.SHINRO_CONFIG || {}).API_URL || '';
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -13,7 +13,7 @@
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* 막힌 환경 */ } }, del: k => { try { sessionStorage.removeItem(k); } catch (e) { /* */ } } };
 
   async function startApp() {
-    if (!window.STUDENTS && (location.protocol === 'file:' || location.hostname === 'localhost')) { try { await load(A + 'students.js'); } catch (e) { /* 개발용 — 없으면 무시 */ } }
+    if (location.protocol === 'file:' || location.hostname === 'localhost') for (const n of ['students', 'results']) { if (!window[n.toUpperCase()]) { try { await load(A + n + '.js'); } catch (e) { /* 개발용 — 없으면 무시 */ } } }
     for (const n of APP) await load(A + n + '.js');
     document.body.classList.remove('sh-locked');
     window.dispatchEvent(new HashChangeEvent('hashchange'));   // 모든 화면이 등록된 뒤 첫 화면 시작

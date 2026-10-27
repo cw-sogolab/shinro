@@ -11,7 +11,7 @@
  */
 var VER = 'shinro-1';
 var DATA_NAMES = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];   // 화면이 읽는 순서
-var OPTIONAL = ['students'];   // 폴더에 있으면 같이 내려 줌(실제 학생 성적). 없어도 오류 아님
+var OPTIONAL = ['students', 'results'];   // 폴더에 있으면 같이 내려 줌(실제 학생 성적 · 입시 결과 지원자 기록). 없어도 오류 아님
 var MAX_FAIL = 10, FAIL_SEC = 300;   // 5분 안에 틀린 코드 10번이면 5분 동안 잠금
 
 function doGet() { return json_({ ok: true, app: '진학 상담', ver: VER }); }
