@@ -422,7 +422,306 @@ window.ENG_RULES = {
   'apu-2027/jpn_apr': { all: { accept: ['ibt', 'ielts'], min: { ibt: 75, band: 4.0, ielts: 6.0 }, note: '일본어 기준(JLPT·EJU)으로 대신 충족 가능. IELTS는 각 영역 5.5 이상도 필요' } },
   'apu-2027/jpn_sep': { all: { accept: ['ibt', 'ielts'], min: { ibt: 75, band: 4.0, ielts: 6.0 }, note: '일본어 기준(JLPT·EJU)으로 대신 충족 가능. IELTS는 각 영역 5.5 이상도 필요' } },
   'apu-2027/other_apr': { all: { accept: ['ibt', 'ielts'], min: { ibt: 75, band: 4.0, ielts: 6.0 }, note: '일본어 기준(JLPT·EJU)으로 대신 충족 가능. IELTS는 각 영역 5.5 이상도 필요' } },
-  'apu-2027/other_sep': { all: { accept: ['ibt', 'ielts'], min: { ibt: 75, band: 4.0, ielts: 6.0 }, note: '일본어 기준(JLPT·EJU)으로 대신 충족 가능. IELTS는 각 영역 5.5 이상도 필요' } }
+  'apu-2027/other_sep': { all: { accept: ['ibt', 'ielts'], min: { ibt: 75, band: 4.0, ielts: 6.0 }, note: '일본어 기준(JLPT·EJU)으로 대신 충족 가능. IELTS는 각 영역 5.5 이상도 필요' } },
   /* nishogakusha — 규칙 없음 */
   /* zokei — 규칙 없음 */
+  /* aichiken */
+// 아이치현립대학 (aichiken) — 정보과학부 전형은 영어 스코어(TOEIC L&R 공개테스트·TOEFL iBT·IELTS 중 하나)를 점수화, 기준점 없음. 정보 외 학부는 영어 외부시험 불필요
+  'aichiken-2027/joho': { all: { accept: ['ibt', 'ielts', 'toeic'], note: '기준점 없음 — 점수 제출만 필수(영어 100점 배점). 출원 마감일 기준 2년 이내 응시분, TOEIC은 공개테스트(L&R)' } },
+  'aichiken-2027/other': { all: { accept: [], note: '영어 외부시험 불필요(본학 영어 필기 시험이 있음, 역사문화학과는 영어 없음)' } },
+  /* aichikyoiku */
+'aichikyoiku-2027/sogo': { all: { accept: [], note: '외부 영어시험 점수 요건 없음 (영어전수는 학력검사·영어 면접, 일본어지원·영어전수는 영어 소논문 가능)' } },
+  /* azabu */
+'azabu-2027/gaikokujin': { all: { accept: [], note: '외부 영어시험 점수 요건 없음 (수의학과는 본학 필기시험에 영어 포함)' } },
+  /* chibakogyo */
+// 치바공업대학 (chibakogyo)
+  'chibakogyo-2027/ryugakusei': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* ehime */
+// 愛媛大学 (ehime) — 의학부 간호학과만 TOEFL iBT 제출(기준점 없음). 그 외 영어 요건 없음(요강에 언급 없음)
+  'ehime-2027/dojon': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 언급 없음)' } },
+  'ehime-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 언급 없음). 단 의학부 간호학과는 TOEFL iBT 응시·제출 필수' }, by_fac: { '医学部': { accept: ['ibt'], note: '간호학과만 TOEFL iBT Test Taker Score Report 제출 필수(기준점 명시 없음, 100점 배점). 의학과는 영어 요건 없음' } } },
+  /* fukui */
+// 福井大学 (fukui) — 국제지역학부: TOEFL iBT·IELTS·DET 중 하나 제출(기준점 없음). 공학부: TOEFL 제출 필수(기준점 없음)
+  'fukui-2027/kokusai': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 — TOEFL iBT(Home Edition 포함)·IELTS 아카데믹·DET 중 하나 제출 필수(2025-01 이후 응시). DET는 판정 대상 외, TOEIC 불가. 점수표 인쇄본 + 대학 직송(TOEFL DI 코드 0184)' } },
+  'fukui-2027/kogaku': { all: { accept: ['ibt'], note: '기준점 없음 — TOEFL 제출 필수(Home Edition 인정). Test Taker Score Report 인쇄본 + Official Score Report 직송(DI 코드 0184), 2024-10 이후 실시분만. IELTS·TOEIC 불가(요강에 규정 없음)' } },
+  /* fukuiken */
+// 후쿠이현립대학 (fukuiken) — 영어 외부시험(TOEFL·TOEIC L&R·IELTS Academic·영검) 공식 성적 제출이 출원 자격, 기준점 없음
+  'fukuiken-2027/shihi': { all: { accept: ['ibt', 'ielts', 'toeic'], note: '기준점 없음 — 2024-12 이후 응시한 공식 성적 제출이 출원 자격(영검도 인정). TOEFL ITP·TOEIC IP·IELTS General 등은 불가' } },
+  /* fukuokajoshi */
+// 福岡女子大学 (fukuokajoshi) — 기준점 없음, 영어 자격·검정 8종 중 하나 제출(환산 100점 배점). TOEIC은 L&R+S&W 합계 요구라 판정 제외
+  'fukuokajoshi-2027/ippan': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 — 점수 제출 필수(100점 배점으로 환산). TOEFL iBT·IELTS·GTEC(4기능)·TEAP·TEAP CBT·케임브리지 영검·실용영어기능검정·TOEIC L&R+S&W 중 하나(출원 접수 개시일 2년 이내). TOEIC L&R 단독 불가. 2026-01-21 이후 TOEFL은 ETS 직송(DI 코드 7208) + Score Report 인쇄본. 학비 감면 기준: 전액 iBT 72·IELTS 5.5, 반액 iBT 57·IELTS 4.5' } },
+  /* fukuokaken */
+// 후쿠오카현립대학 (fukuokaken)
+  'fukuokaken-2027/ryugakusei': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 영어 점수 제출 항목 없음)' } },
+  /* fukuyama */
+// 福山市立大学 (fukuyama) — TOEFL iBT 또는 TOEIC 공개테스트 점수 제출 필수(2025-02-01 이후), 기준점 없음. 영어 모어 화자는 제출 불요
+  'fukuyama-2027/shihi': { all: { accept: ['ibt', 'toeic'], note: '기준점 없음 — TOEFL iBT 또는 TOEIC(공개테스트) 점수 제출 필수(2025-02-01 이후 응시). 영어를 모어로 하지 않는 사람만. TOEIC은 공개테스트(L&R) 공식인정증' } },
+  /* gunma */
+// 군마대학 (gunma) — 이공학부만 TOEFL·TOEIC·IELTS 중 하나 제출 필수(기준점 없음), 나머지 학부는 영어 외부시험 없음(정보·의학부는 본학 영어 필기)
+  'gunma-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (정보학부·보건학과는 본학 영어 필기시험이 있음)' }, by_fac: { '理工学部': { accept: ['ibt', 'ielts', 'toeic'], note: 'TOEFL iBT·TOEFL ITP(본학 실시분)·TOEIC L&R·TOEIC IP(본학 실시분)·IELTS 중 하나 제출 필수 · 기준점 없음 · 2025-01 이후 응시분' } } },
+  /* gunmajoshi */
+// 群馬県立女子大学 (gunmajoshi) — 외부 영어시험 요건 없음
+  'gunmajoshi-2027/bun': { all: { accept: [], note: '영어 외부시험 요건 없음 (영미문화학과는 자체 전문과목 시험에서 영어)' } },
+  'gunmajoshi-2027/kokusai': { all: { accept: [], note: '영어 외부시험 요건 없음 (면접을 일본어·영어로 실시)' } },
+  /* hannan */
+// 한난대학 (hannan)
+  'hannan-2027/zenki': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'hannan-2027/koki': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* hirokei */
+// 히로시마경제대학 (hirokei) — 영어 외부시험 요건 없음
+  'hirokei-2027/dojon': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* hirosaki — 규칙 없음 */
+  /* hiroshima */
+'hiroshima-2027/feb': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 — 영어 민간시험 성적증명서 제출은 필수. TOEFL은 Test Date 점수만(Home Edition·MyBest 불가), IELTS One Skill Retake 불가, 2025-04 이후 시행분. TOEIC은 L&R+S&W 합산이라 제외' }, by_fac: { '文学部': { accept: ['ibt', 'ielts'], min: { ibt: 44, band: 3.0, ielts: 4.0 }, note: 'CEFR B1 이상 필수. TOEIC은 L&R+S&W 합산 1150 이상(판정 제외)' }, '医学部': { accept: ['ibt', 'ielts'], min: { ibt: 44, band: 3.0, ielts: 4.0 }, note: 'CEFR B1 이상 필수(의학과·보건학과)' }, '歯学部': { accept: ['ibt', 'ielts'], min: { ibt: 44, band: 3.0, ielts: 4.0 }, note: 'CEFR B1 이상 필수' } } },
+  'hiroshima-2027/mar': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 — 영어 민간시험 성적증명서 제출은 필수. TOEFL은 Test Date 점수만(Home Edition·MyBest 불가), 2025-04 이후 시행분' }, by_fac: { '文学部': { accept: ['ibt', 'ielts'], min: { ibt: 44, band: 3.0, ielts: 4.0 }, note: 'CEFR B1 이상 필수' } } },
+  /* hyogo — 규칙 없음 */
+  /* icu */
+'icu-2027/eju': { all: { accept: ['ibt', 'ielts'], note: '합격 최저점 없음 — 점수 제출은 필수 (TOEFL iBT 또는 IELTS Academic, 2025-01-01 이후 응시, 기관 직송). IELTS 6.5 / TOEFL iBT 79(2026-01-20 이전)·4.5(2026-01-21 이후) 이상이면 필수 어학과목으로 JLP 선택 가능' } },
+  /* isct */
+// 東京科学大学 (isct) 2027 — 외부 영어시험은 제출 임의(면접 참고). 기준점 없음. 의치계열(ika)은 대학 학력검사 영어만, 점수 요건 없음 — 규칙 없음
+  'isct-2027/riko': { all: { accept: ['ibt', 'ielts'], note: 'TOEFL iBT·IELTS Academic 제출은 임의(면접 참고, 제출 권장). 2025-04-01 이후 응시분, 기준점 없음. 학력검사에 영어 시험 있음' } },
+  'isct-2027/riko_pre': { all: { accept: ['ibt', 'ielts'], note: 'TOEFL iBT·IELTS Academic 제출은 임의(면접 참고, 제출 권장). 2025-04-01 이후 응시분, 기준점 없음' } },
+  /* ishikawa */
+'ishikawa-2027/tokubetsu': { all: { accept: ['toeic'], note: 'TOEIC L&R 공개 테스트 필수(2025-04-01 이후 응시), 기준점 없음 — 점수 제출만 필수. IP·S&W·Bridge 불가. iBT·IELTS 불가' } },
+  /* iuhw */
+'iuhw-2027/ryugakusei': { all: { accept: [], note: '영어 외부시험 요건 없음(요강에 영어 시험 언급 없음)' } },
+  /* iwateken */
+// 이와테현립대학 (iwateken) — 종합정책학부의 영어 비모어자만 TOEFL(iBT·ITP) 또는 TOEIC(Bridge 제외) 제출 필수(기준점 없음, 2024-11-02 이후 응시분)
+  'iwateken-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '総合政策学部': { accept: ['ibt', 'toeic'], note: '영어를 모어로 하지 않는 사람만 TOEFL(iBT·ITP) 또는 TOEIC(Bridge 제외) 별도 수험·제출 필수(2024-11-02 이후 응시분). 기준점 없음. IELTS 불가. ITP는 판정 불가' } } },
+  /* juntendo */
+// 준텐도대학 (juntendo) — 의학부 외국인 선발·IB 선발 모두 출원 자격에 영어 외부시험 필수(TOEFL iBT 새 4.0=band / 구 72, IELTS 5.5). TOEIC 불가
+  'juntendo-2027/gaikokujin': { all: { accept: ['ibt', 'ielts'], min: { ibt: 72, band: 4.0, ielts: 5.5 }, note: '영검 CSE 2304·TEAP 309·GTEC CBT 1180·케임브리지 160도 가능(판정 제외). TOEIC 불가. 출원 접수 개시일에서 2년 이내 응시분, MyBest·Home Edition 불가' } },
+  'juntendo-2027/ib': { all: { accept: ['ibt', 'ielts'], min: { ibt: 72, band: 4.0, ielts: 5.5 }, note: '영검 CSE 2304·TEAP 309·GTEC CBT 1180·케임브리지 160도 가능(판정 제외). TOEIC 불가. 출원 접수 개시일에서 2년 이내 응시분, MyBest·Home Edition 불가' } },
+  /* kagawa */
+// 카가와대학 (kagawa) — 법·경제 영어 없음 / 의학과 TOEFL 제출 필수(기준점 없음) / 창조공 TOEFL·TOEIC 제출 필수(기준점 없음) / 농학부 iBT 32·TOEIC L&R 300·IELTS 3.5
+  'kagawa-2027/hokei': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'kagawa-2027/igaku': { all: { accept: ['ibt'], note: 'TOEFL 성적 제출 필수 · 기준점 명시 없음 · 2025-01-31 이후 응시분. 별도로 본학 영어 필기시험(외국어)도 있음' } },
+  'kagawa-2027/kogyo_nogaku': { all: { accept: ['ibt', 'toeic'], note: '창조공학부: TOEFL·TOEIC 중 하나 제출 필수(기준점 없음)' }, by_fac: { '農学部': { accept: ['ibt', 'ielts', 'toeic'], min: { ibt: 32, toeic: 300, ielts: 3.5 }, note: 'TOEFL iBT 32 / TOEIC L&R 300 / IELTS Academic 3.5 이상 중 하나. 12점 만점으로 환산해 배점에 포함. 2026-01-21 이후 iBT는 밴드 기준이 없어 구 점수(0~120)로만 확인' } } },
+  /* kanagawashika — 규칙 없음 */
+  /* kanoya */
+// 鹿屋体育大学 (kanoya) — 영어 점수 요건 없음
+  'kanoya-2027/shihi': { all: { accept: [], note: '영어 점수 요건 없음' } },
+  /* kit */
+// 쿄토공예섬유대학 (kit) — TOEFL iBT 응시 필수(기준점 없음), iBT만 인정
+  'kit-2027/shihi': { all: { accept: ['ibt'], note: 'TOEFL iBT만(Home Edition 포함, ITP·My Best 불가) · 2024-08~2026-06 응시분 · 기준점 명시 없음(응시 필수)' } },
+  /* kitami */
+// 北見工業大学 (kitami) — 영어 외부시험 요건 없음(요강에 언급 없음)
+  'kitami-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 언급 없음)' } },
+  /* kobe */
+// 코베대학 (kobe) — 경제학부·법학부 모두 TOEFL iBT 제출 필수, 기준점 없음
+  'kobe-2027/econ': { all: { accept: ['ibt'], note: 'TOEFL iBT 필수(Home Edition 포함, 입학시험 실시일로부터 2년 이내 응시분) · 기준점 없음. IELTS·TOEIC 불가' } },
+  'kobe-2027/law': { all: { accept: ['ibt'], note: 'TOEFL iBT 필수(Home Edition 가능, 응시일로부터 2년 이내, Test Date 스코어만 채택) · 기준점 없음. IELTS·TOEIC 불가' } },
+  /* kobegakuin */
+// 코베학원대학 (kobegakuin) — 외부 영어시험 요건 없음 (인문·GC·약학부는 본교 영어 필기시험)
+  'kobegakuin-2027/ippan': { all: { accept: [], note: '외부 영어시험 요건 없음 (인문·GC·약학부는 본교 영어 필기시험)' } },
+  /* kochi */
+// 코치대학 (kochi) — A선발 인문사회과학부 인문과학·국제사회 코스만 TOEFL 또는 IELTS(Academic) 필수, 기준점 없음. B선발·그 밖의 단위는 영어 외부시험 불요
+  'kochi-2027/a': { all: { accept: ['ibt', 'ielts'], note: '인문사회과학부 인문과학·국제사회 코스만 TOEFL 또는 IELTS(Academic, 2025-04-01 이후 응시) 제출 필수 · 기준점 없음. 사회과학 코스와 이공·의·농림해양은 불요. TOEFL 종류(iBT 외)는 요강에 명시 없음' } },
+  /* kochiken */
+// 코치현립대학 (kochiken)
+  'kochiken-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 영어 점수 제출 항목 없음)' } },
+  /* kokugakuin */
+'kokugakuin-2027/ippan_keizai': { all: { accept: ['ibt', 'ielts'], min: { ibt: 42, band: 3, ielts: 4.0 }, note: '경제학부 출원 요건: 외부 영어시험 CEFR A2 이상(4기능 종합 CEFR 판정이 있는 것). TOEFL iBT·IELTS는 B1 이상만 인정(iBT 42 / 밴드 3, IELTS 4.0, 자택 수험형 불가). TOEIC은 L&R+S&W 합계 385 이상이라 판정 제외, 영검·GTEC·TEAP·케임브리지는 점수 판정 불가. 2024-04-01 이후 취득분' } },
+  'kokugakuin-2027/ippan': { all: { accept: [], note: '관광마을만들기학부 외에는 영어 요건 없음' }, by_fac: { '観光まちづくり学部': { accept: ['ibt', 'ielts'], min: { ibt: 42, band: 3, ielts: 4.0 }, note: 'CEFR A2 이상 영어시험 또는 EJU 수학(코스1·2) 응시 중 택일(영어는 필수가 아님). TOEFL iBT·IELTS는 B1 이상만 인정(자택 수험형 불가). TOEIC은 L&R+S&W 합계 385 이상이라 판정 제외. 2024-04-01 이후 취득분' } } },
+  /* konan */
+// 코난대학 (konan) — 영어 외부시험 점수 또는 고교 영어 교육 성적증명서 제출(기준점 없음)
+  'konan-2027/ryugaku': { all: { accept: ['ibt', 'ielts', 'toeic'], note: '기준점 없음 — 영어 외부시험(케임브리지·TOEFL iBT·IELTS·TOEIC L&R·GTEC·TEAP·에이켄) 점수·합격증명서 또는 고교 영어 교육 성적증명서 중 하나 제출. 영어 모어 화자·영어 공용어 국가 거주자는 고교 영어 수료 증명서로 면제' } },
+  /* kuas — 규칙 없음 */
+  /* kumamotoken */
+// 熊本県立大学 (kumamotoken) — 외부 영어시험 요건 없음. 영어는 대학 자체 필기시험
+  'kumamotoken-2027/shihi': { all: { accept: [], note: '외부 영어시험 요건 없음 (대학 자체 영어 필기시험)' } },
+  /* kyotogaigo */
+// 쿄토외국어대학 (kyotogaigo) — 국제공헌학부 글로벌스터디즈학과만 영어 자격(또는 영어 교수 언어 3년 과정). 일본어학과·글로벌관광학과는 영어 요건 없음
+  // 기준: iBT 구 62 / 신 4.0(band) / IELTS 5.0 / TOEIC L&R 710 (영검 CSE 2150·GTEC 1099·TEAP 282 등은 판정 제외). by_fac 는 학부 단위라 글로벌관광학과도 같은 기준이 표시됨(실제 요건 없음)
+  'kyotogaigo-2027/kokunai': { all: { accept: [], note: '영어 요건 없음 (일본어학과)' }, by_fac: { '国際貢献学部': { accept: ['ibt', 'ielts', 'toeic'], min: { ibt: 62, band: 4.0, ielts: 5.0, toeic: 710 }, note: '글로벌스터디즈학과만 해당 — 영어 검정 기준 또는 영어 교수 언어 3년 과정(Certificate of English as Medium of Instruction)으로도 가능. 글로벌관광학과는 영어 요건 없음. TOEIC L&R 710 (L&R+S&W는 1430)' } } },
+  'kyotogaigo-2027/kokugai': { all: { accept: [], note: '영어 요건 없음 (일본어학과)' }, by_fac: { '国際貢献学部': { accept: ['ibt', 'ielts', 'toeic'], min: { ibt: 62, band: 4.0, ielts: 5.0, toeic: 710 }, note: '글로벌스터디즈학과만 해당 — 영어 검정 기준 또는 영어 교수 언어 3년 과정(Certificate of English as Medium of Instruction)으로도 가능. 글로벌관광학과는 영어 요건 없음. TOEIC L&R 710 (L&R+S&W는 1430)' } } },
+  /* kyushushika */
+'kyushushika-2027/shihi': { all: { accept: [], note: '외부 영어시험 점수 요건 없음 (본학 개별 시험의 외국어(영어)를 치름)' } },
+  /* maebashi */
+// 前橋工科大学 (maebashi) — TOEFL iBT 또는 TOEIC L&R 공개테스트 필수(2025-04-01 이후), 기준점 없음 — 점수 제출만. IELTS 불가
+  'maebashi-2027/shihi': { all: { accept: ['ibt', 'toeic'], note: '기준점 없음 — TOEFL iBT 또는 TOEIC L&R 공개테스트(2025-04-01 이후 응시) 점수 제출 필수. IELTS 불가' } },
+  /* matsumoto */
+// 마츠모토치과대학 (matsumoto)
+  'matsumoto-2027/ryugakuE': { all: { accept: [], note: '영어 점수 제출은 필수 아님 — TOEFL·TOEIC·IELTS 등 검정 합격자는 평가에 포함될 수 있음(기준점·배점 요강에 없음)' } },
+  'matsumoto-2027/ryugakuF': { all: { accept: [], note: '영어 점수 제출은 필수 아님 — TOEFL·TOEIC·IELTS 등 검정 합격자는 평가에 포함될 수 있음(기준점·배점 요강에 없음)' } },
+  /* mie */
+// 미에대학 (mie)
+  'mie-2027/jinbun': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'mie-2027/seibutsu': { all: { accept: ['ibt'], min: { ibt: 39 }, note: 'TOEFL iBT만. 39점 이상(과거 2년 이내 응시분, 구 0~120 점수 기준 — 2026-01-21 이후 밴드 기준은 요강에 없음). ETS에서 대학 코드 7926으로 공식 스코어 직송 필수' } },
+  /* miyazaki */
+/* miyazaki — 공학부·지역자원창성학부: 영어 성적 요건 없음(키 생략) */
+  'miyazaki-2027/nogaku': { all: { accept: ['ibt'], note: 'TOEFL 성적증명서 제출이 출원 조건(농학과 응용생명화학코스만 불필요) · 기준점 명시 없음 · 출원 이전 2년 이내 응시분 · iBT Home Edition 포함' } },
+  /* miyazakikoritsu */
+// 宮崎公立大学 (miyazakikoritsu) — 사비 외국인유학생 선발은 영어 점수 요건 없음(영어 조건은 귀국생·사회인 선발만)
+  'miyazakikoritsu-2027/shihi': { all: { accept: [], note: '영어 점수 요건 없음 (영어 조건은 귀국생·사회인 선발에만 있음)' } },
+  /* muroran */
+// 무로란공업대학 (muroran) — TOEFL iBT 32점(구 점수 환산) 이상 필수, iBT만 인정
+  'muroran-2027/sogo': { all: { accept: ['ibt'], min: { ibt: 32, band: 2.5 }, note: 'TOEFL iBT만(Home Edition 가능, My Best Scores 불가) · 2024-12~2026-12 응시분 · 32점(구 점수 환산) 이상 — 100점으로 환산해 합계 1000점에 가산' } },
+  /* musashi — 규칙 없음 */
+  /* nagaoka */
+// 나가오카기술과학대학 (nagaoka) — TOEIC L&R(SP 공개 테스트) 또는 TOEFL iBT(Home Edition 포함) 점수 제출, 기준점 명시 없음
+  'nagaoka-2027/shihi': { all: { accept: ['ibt', 'toeic'], note: '기준점 없음 — 2025-01 이후 응시한 TOEIC L&R(SP 공개 테스트) 또는 TOEFL iBT(Home Edition 포함, MyBest 불가) 점수 제출 필수. IELTS 불가' } },
+  /* nagasakiken — 규칙 없음 */
+  /* nagoyageijutsu */
+// 나고야예술대학 (nagoyageijutsu) — 외국인유학생 입시는 영어 외부시험 요건 없음
+  'nagoyageijutsu-2027/ki1': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'nagoyageijutsu-2027/ki2': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* nagoyashi */
+// 나고야시립대학 (nagoyashi) — TOEIC 공개테스트(L&R) 공식 스코어 필수, 기준점 요강에 없음
+  'nagoyashi-2027/shihi': { all: { accept: ['toeic'], note: 'TOEIC 공개테스트(L&R)만 인정(IP·인쇄 성적표 불가). 점수 제출 필수이나 기준점은 요강에 없음' } },
+  /* nanzan */
+// 난잔대학 (nanzan) — EJU 이용형은 TOEFL iBT 또는 IELTS Academic 필수(TOEIC 불가). 영미학과만 기준이 높고(iBT 72/밴드 4/IELTS 5.5), 그 외 학과는 iBT 61/밴드 3.5/IELTS 5.0. iBT는 각 기능 기준(12·15 / 3.5)도 요구
+  'nanzan-2027/eju': { all: { accept: ['ibt', 'ielts'], min: { ibt: 61, band: 3.5, ielts: 5.0 }, note: 'TOEFL iBT는 각 기능 기준(2026-01-20 이전 12 이상, 2026-01-21 이후 3.5 이상)도 1회 응시로 충족 필요. Home Edition·IELTS Online 불가. 외국어학부 영미학과만 iBT 72(밴드 4)·IELTS 5.5(각 기능 15 / 3.5 이상)' }, by_fac: { '外国語学部': { accept: ['ibt', 'ielts'], min: { ibt: 61, band: 3.5, ielts: 5.0 }, note: '영미학과만 iBT 72 / 밴드 4 / IELTS 5.5 로 더 높음(스페인·프랑스·독일·아시아학과는 iBT 61 / 3.5 / 5.0). 각 기능 기준 별도' } } },
+  /* narajoshi */
+// 나라여자대학 (narajoshi) — 문·이·공학부는 TOEIC 또는 TOEFL, 생활환경학부는 TOEFL만. 기준점 명시 없음(총점 환산 반영)
+  'narajoshi-2027/shihi': { all: { accept: ['ibt', 'toeic'], note: '기준점 명시 없음 — 점수 제출 필수(총점에 환산 반영). TOEIC-IP·TOEFL-ITP 불가' }, by_fac: { '生活環境学部': { accept: ['ibt'], note: 'TOEFL만 인정(TOEIC 불가) · 기준점 명시 없음 · ITP 불가' } } },
+  /* nihon */
+'nihon-2027/shogaku': { all: { accept: ['ibt', 'toeic'], note: '상학부만 외부 영어시험 필수(TOEIC L&R·TOEFL iBT 공식 스코어, IELTS 불가). 기준점 비공개(학부 환산표로 EJU와 합산, 합격 최저 기준 있음). 출원 마감일 2년 이내 응시분. 그 외 학부는 외부 영어시험 불필요(치·생물자원은 본교 시험에서 영어 출제)' } },
+  /* nihonjoshi */
+// 일본여자대학 (nihonjoshi) — 영문학과만 기준점(IELTS 5.0 / iBT 60(~2026-01-20)·밴드 3.5(2026-01-21~) / TOEIC L&R 600). 학부 단위 구분 불가라 note 로 안내
+  'nihonjoshi-2027/gaikokujin': { all: { accept: ['ibt', 'ielts', 'toeic'], note: '영문학과만 기준점 있음: IELTS 5.0 · TOEFL iBT 60(2026-01-20 이전)/밴드 3.5(2026-01-21 이후) · TOEIC L&R 600. 그 외 학과는 TOEFL 또는 TOEIC 점수 보유만 필수(IELTS는 영문학과만 인정)' }, by_fac: { '文学部': { accept: ['ibt', 'ielts', 'toeic'], min: { toeic: 600, ibt: 60, band: 3.5, ielts: 5.0 }, note: '영문학과 기준(일본어일본문·역사문화학과는 기준점 없음, 점수 보유만 필수)' } } },
+  /* niigataken */
+// 니이가타현립대학 (niigataken) — 국제경제학부만 TOEFL iBT 또는 TOEIC L&R 성적 제출 필수(기준점 없음)
+  'niigataken-2027/ryugakusei': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '国際経済学部': { accept: ['ibt', 'toeic'], note: 'TOEFL iBT 또는 TOEIC L&R 성적 제출 필수(출원 개시일 전 2년 이내 응시). 기준점 없음 — 제출만 필수. IELTS 불가' } } },
+  /* nucba */
+// 나고야상과대학 (nucba) — 영어 외부시험 요건 없음(서류 + 에세이 + 면접). 일본어 능력만 증명
+  'nucba-2027/apr': { all: { accept: [], note: '영어 시험 요건 없음 — 일본어 능력 증명(EJU 200 / JLPT N2 등)만 요구' } },
+  'nucba-2027/sep': { all: { accept: [], note: '영어 시험 요건 없음 — 일본어 능력 증명(EJU 200 / JLPT N2 등)만 요구' } },
+  /* obihiro */
+'obihiro-2027/shihi': { all: { accept: ['ibt', 'ielts'], note: 'TOEFL 또는 IELTS(Academic) 필수(2024-04-01 이후 응시), 기준점 없음 — 점수 제출만 필수' } },
+  /* ochanomizu */
+// 오차노미즈여자대학 (ochanomizu) — TOEFL iBT는 이학부 물리학과·생활과학부 식물영양학과만 필수(기준점 없음). by_fac는 학부 단위라 note로 학과를 구분
+  'ochanomizu-2027/tokubetsu': { by_fac: {
+    '文教育学部': { accept: [], note: '영어 외부시험 불필요(본학 영어 필기 시험은 있음)' },
+    '理学部': { accept: ['ibt'], note: '물리학과만 TOEFL iBT 필수(기준점 없음, 시험 첫날 기준 2년 이내, ITP 불가). 수학·화학·생물·정보과학과는 불필요' },
+    '生活科学部': { accept: ['ibt'], note: '식물영양학과만 TOEFL iBT 필수(기준점 없음, 시험 첫날 기준 2년 이내, ITP 불가). 인간생활·심리학과는 불필요' },
+    '共創工学部': { accept: [], note: '영어 외부시험 불필요(본학 영어 필기 시험은 있음)' } } },
+  /* oit */
+// 오사카공업대학 (oit) — 영어 외부시험 요구 없음
+  'oit-2027/gaikoku': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* okayamaken */
+// 岡山県立大学 (okayamaken) — 전 학부 TOEFL iBT 필수(기준점 없음, 배점 반영). Home Edition 불가
+  'okayamaken-2027/hoken': { all: { accept: ['ibt'], note: 'TOEFL iBT 필수(기준점 명시 없음, 200점 배점). Home Edition 불가. 시험일 2년 전~출원 사이 응시분, DI 6812' } },
+  'okayamaken-2027/joho': { all: { accept: ['ibt'], note: 'TOEFL iBT 필수(기준점 명시 없음, 200점 배점). Home Edition 불가. 시험일 2년 전~출원 사이 응시분, DI 6812' } },
+  'okayamaken-2027/design': { all: { accept: ['ibt'], note: 'TOEFL iBT 필수(기준점 명시 없음, 배점 비주얼·공예 50점 / 건축 100점). Home Edition 불가. DI 6812' } },
+  /* okigei */
+// 오키나와현립예술대학 (okigei) — 사비 외국인유학생 선발은 대학입학공통테스트(외국어 포함) 면제, 영어 외부시험 요건 없음
+  'okigei-2027/bijutsu': { all: { accept: [], note: '영어 외부시험 요건 없음 (공통테스트 면제, EJU 일본어·종합과목 + 실기·면접)' } },
+  'okigei-2027/ongaku': { all: { accept: [], note: '영어 외부시험 요건 없음 (공통테스트 면제, EJU 일본어·종합과목 + 전공시험·면접)' } },
+  /* onomichi */
+// 오노미치시립대학 (onomichi)
+  'onomichi-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (입학 후 전 학과 영어 필수 — 일본 고교 졸업 수준 영어력 필요)' } },
+  /* osakakoritsu */
+// 오사카공립대학 (osakakoritsu) — TOEFL iBT만, 2025-04-01 이후 응시, Test Date 점수만(MyBest·Special Home Edition 불가). 2026-01-20 이전은 0~120, 2026-01-21 이후는 밴드
+  'osakakoritsu-2027/early': { all: { accept: ['ibt'], note: 'TOEFL iBT 제출 필수' }, by_fac: {
+    '現代システム科学域': { accept: ['ibt'], min: { ibt: 61, band: 3.5 }, note: '환경사회시스템·교육복지·심리학류 iBT 61 / 밴드 3.5 (지식정보시스템학류는 iBT 45 / 밴드 3) — 출원 요건' },
+    '獣医学部': { accept: ['ibt'], note: 'TOEFL iBT 제출 필수 · 기준점 없음 · 120점 만점으로 배점 반영' } } },
+  'osakakoritsu-2027/main': { all: { accept: [], note: '영어 외부시험 요건 없음 (개별학력검사 영어 필기)' }, by_fac: {
+    '農学部': { accept: ['ibt'], min: { ibt: 61, band: 3.5 }, note: '녹지환경과학과 iBT 61 / 밴드 3.5, 응용생물과학과 iBT 71 / 밴드 4, 생명기능화학과 기준 없음(제출 필수) — 출원 요건, 합·부 판정' },
+    '看護学部': { accept: ['ibt'], min: { ibt: 45, band: 3.0 }, note: 'TOEFL iBT 45 / 밴드 3 — 출원 요건' } } },
+  /* osakashika — 규칙 없음 */
+  /* otaru — 규칙 없음 */
+  /* ryukyu — 규칙 없음 */
+  /* saga */
+// 사가대학 (saga)
+  'saga-2027/shihi': { by_fac: {
+    '教育学部': { accept: ['ibt'], note: 'TOEFL iBT 필수(시험장 응시분만, Home Edition 불가). 기준점 명시 없음. 2025-01 이후 응시분' },
+    '芸術地域デザイン学部': { accept: ['ibt'], note: 'TOEFL iBT 필수. 기준점 명시 없음. 2025-01 이후 응시분' },
+    '経済学部': { accept: [], note: 'TOEFL 불필요(영어 요건 없음)' },
+    '医学部': { accept: ['ibt'], note: 'TOEFL iBT 필수(시험장 응시분만, Home Edition 불가). 기준점 명시 없음. 2025-01 이후 응시분' },
+    '理工学部': { accept: ['ibt'], note: 'TOEFL iBT 필수. 기준점 명시 없음. 2025-01 이후 응시분' },
+    '農学部': { accept: ['ibt'], note: 'TOEFL iBT 필수(시험장 응시분만, Home Edition 불가). 기준점 명시 없음. 2025-01 이후 응시분' } } },
+  /* sapporoshi */
+// 札幌市立大学 (sapporoshi) — 영어 외부시험 요건 없음(요강에 언급 없음)
+  'sapporoshi-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 언급 없음)' } },
+  /* seian */
+// 세이안조형대학 (seian) — 외국인유학생 입시 영어 외부시험 요건 없음
+  'seian-2027/ki1': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'seian-2027/ki2': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'seian-2027/ki3': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* seikei */
+// 세이케이대학 (seikei)
+  'seikei-2027/gaikokujin': { by_fac: {
+    '経済学部': { accept: ['ibt', 'ielts', 'toeic'], note: '출원 요건: 영검·TOEFL iBT·TOEIC L&R·IELTS(Academic)·GTEC·TEAP·케임브리지 중 하나 + JLPT N1. 기준점 없음 — 점수 제출만 필수. 출원 개시일 시점 유효 기간 안의 점수만, TOEFL ITP·TOEIC IP 불가' },
+    '経営学部': { accept: [], note: '영어 점수 요건 없음 (활동 보고서에 검정·자격 점수를 적는 것은 임의)' },
+    '法学部': { accept: [], note: '영어 점수 요건 없음 (어학 시험 증명서는 있으면 제출)' },
+    '文学部': { accept: ['ibt', 'ielts'], min: { ibt: 72, band: 4.0, ielts: 5.5 }, note: '영어영미문학과만 해당 (일본문학·국제문화·현대사회학과는 영어 불필요). 영검 2300 / 케임브리지 160 / GTEC 1180 / TEAP 309도 인정(판정 불가), TOEIC L&R+S&W 합계 1095는 판정 제외. TOEFL iBT 72는 2026-01-20 이전 응시, 2026-01-21 이후는 밴드 4.0. 출원 개시일 시점 유효 기간 안의 점수만' },
+    '国際共創学部': { accept: [], note: '영어 점수 요건 없음 (영어 외부 검정 성적을 내면 1차 서류 심사에서 평가)' },
+    '理工学部': { accept: [], note: '영어 점수 요건 없음 (영어 검정 증명서는 임의 제출)' } } },
+  /* shiga */
+// 시가대학 (shiga) — 경제학부 사비 외국인유학생 선발: TOEIC L&R 공개테스트 공식인정증 제출 필수(400점 배점), 기준점 없음
+  'shiga-2027/shihi': { by_fac: { '経済学部': { accept: ['toeic'], note: '기준점 없음 — TOEIC 공개테스트(L&R) 공식인정증 제출 필수(출원 개시일부터 2년 이내 응시, IP 불가, 일본 국외 응시분 가능). TOEFL·IELTS 불가' } } },
+  /* shigaken — 규칙 없음 */
+  /* shimaneken */
+// 시마네현립대학 (shimaneken) — 사비 외국인유학생 특별선발에 영어 외부시험 요건 없음 (국제관계·지역정책은 소논문에서 영어력도 평가)
+  'shimaneken-2027/kokusai': { all: { accept: [], note: '영어 외부시험 요건 없음 (소논문에서 국어력·영어력을 함께 평가)' } },
+  'shimaneken-2027/ningen': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* shimonoseki — 규칙 없음 */
+  /* shobi */
+// 쇼비학원대학 (shobi) — 영어 성적 요건 없음 (서류·소논문·면접)
+  'shobi-2027/doil': { all: { accept: [], note: '영어 외부시험 요건 없음 (서류·소논문·면접)' } },
+  'shobi-2027/dojeon': { all: { accept: [], note: '영어 외부시험 요건 없음 (서류·소논문·면접, 온라인)' } },
+  /* showajoshi */
+'showajoshi-2027/ippan': { all: { accept: ['ibt', 'ielts'], note: '출원 요건 아님(기준점 없음). 국제학과·국제일본학과만 영어 4기능 점수로 적성테스트(영어) 면제·환산: iBT 53/61/79 이상, IELTS 5.0/5.5/6.0 이상 = 80/90/100점. 2026-01 이후 iBT 새 점수 기준은 본학 HP 확인' } },
+  /* soka */
+// 소카대학 (soka)
+  'soka-2027/dojon': { by_fac: {
+    '国際教養学部': { accept: ['ibt', 'ielts'], min: { band: 4.0, ielts: 6.0 }, note: 'TOEFL iBT 4.0(구 70) / IELTS Academic 6.0 / Duolingo 105(판정 제외) 중 하나. 출원 마감 2년 이내. 영미권 6년 영어 수학자는 성적증명서로 대체 가능' },
+    '理工学部': { accept: [], note: '그린테크놀로지학과만, 일본어 N2 증명이 없을 때 TOEFL iBT 3.5(구 61)·IELTS 5.5·Duolingo 95 이상 중 하나(N5 이상 병행). 그 외 학과는 영어 요건 없음' },
+    '経済経営学部': { accept: [], note: '영어 요건 없음' }, '法学部': { accept: [], note: '영어 요건 없음' }, '文学部': { accept: [], note: '영어 요건 없음' }, '教育学部': { accept: [], note: '영어 요건 없음' } } },
+  'soka-2027/honko': { all: { accept: [], note: '영어 요건 없음' } },
+  /* spuc */
+// 시즈오카현립대학 (spuc) — TOEFL iBT 또는 TOEIC L&R 중 택일(약학·식품영양과학·경영정보), 국제관계학부는 불필요
+  'spuc-2027/shihi': { by_fac: {
+    '薬学部': { accept: ['ibt', 'toeic'], note: '득점 조건 없음 — TOEFL iBT 또는 TOEIC L&R 제출만 필수(2025-04-01 이후 응시, TOEIC은 일본 국내 응시분). 영어 모어 화자는 사전 신청으로 면제 가능' },
+    '食品栄養科学部': { accept: ['ibt', 'toeic'], min: { ibt: 39, band: 3.0, toeic: 385 }, note: 'TOEFL iBT 39(2026-01-20 이전) / 밴드 3(2026-01-21 이후, 또는 참고값 39) · TOEIC L&R 385 중 1종. TOEIC은 일본 국내 응시분' },
+    '経営情報学部': { accept: ['ibt', 'toeic'], min: { ibt: 39, band: 3.0, toeic: 385 }, note: 'TOEFL iBT 39(2026-01-20 이전) / 밴드 3(2026-01-21 이후, 또는 참고값 39) · TOEIC L&R 385 중 1종. TOEIC은 일본 국내 응시분' },
+    '国際関係学部': { accept: [], note: '영어 시험 불필요(본교 영어 학력검사만)' },
+  } },
+  /* tgu — 규칙 없음 */
+  /* tohokugeiko — 규칙 없음 */
+  /* tokyoongaku */
+'tokyoongaku-2027/haru': { all: { accept: ['ibt', 'ielts'], min: { ibt: 42, band: 2.5, ielts: 4.0 }, note: '본학 영어시험(60분)으로 대체 가능. 영어 모어자·영어 교육 3년 이상이면 면제. TOEIC은 L&R+S&W 합산 625 요구라 제외' } },
+  'tokyoongaku-2027/haru_mbt': { all: { accept: ['ibt', 'ielts'], min: { ibt: 42, band: 2.5, ielts: 4.0 }, note: '영어·수학 중 본학 시험 1과목으로 대체 가능(영어 필수 아님). TOEIC은 L&R+S&W 합산 요구라 제외' } },
+  'tokyoongaku-2027/haru_mla': { all: { accept: ['ibt', 'ielts'], min: { ibt: 52, band: 3.5, ielts: 4.5 }, note: '본학 영어시험으로 대체 가능. TOEIC은 L&R+S&W 합산 1150 요구라 제외' } },
+  'tokyoongaku-2027/aki_a': { all: { accept: ['ibt', 'ielts'], min: { ibt: 52, band: 3.5, ielts: 4.5 }, note: '본학 영어시험으로 대체 가능. TOEIC은 L&R+S&W 합산 1150 요구라 제외' } },
+  'tokyoongaku-2027/aki_b': { all: { accept: ['ibt', 'ielts'], min: { ibt: 52, band: 3.5, ielts: 4.5 }, note: '본학 영어시험으로 대체 가능. TOEIC은 L&R+S&W 합산 1150 요구라 제외' } },
+  /* tottori */
+// 톳토리대학 (tottori) — 영어 자격은 의학부 생명과학과·공학부만 필수. 영검 2급 이상도 인정하나 판정 불가(accept에서 제외)
+  'tottori-2027/shihi': { by_fac: {
+    '地域学部': { accept: [], note: '영어 외부시험 불필요' },
+    '医学部': { accept: ['ibt', 'toeic'], min: { toeic: 500, ibt: 38, band: 3.0 }, note: '생명과학과만 해당(의학과·보건학과는 불필요). TOEIC 500 / iBT 2026-01-21 이후 밴드 3 이상, 이전 38(Reading 14·Listening 13 이상) / 영검 2급 이상(점수 판정 불가). 선고기일(2027-02-25) 기준 2년 이내' },
+    '工学部': { accept: ['ibt', 'toeic'], min: { toeic: 500, ibt: 38, band: 3.0 }, note: 'TOEIC 500 / iBT 2026-01-21 이후 밴드 3 이상, 이전 38(Reading 14·Listening 13 이상) / 영검 2급 이상(점수 판정 불가). 선고기일(2027-02-25) 기준 2년 이내' },
+    '農学部': { accept: [], note: '영어 외부시험 불필요' } } },
+  /* toyamaken */
+'toyamaken-2027/sogo': { all: { accept: ['ibt'], note: 'TOEFL iBT 응시 필수(출원 마감 전 2년 이내, ITP 불가), 기준점 없음 — 점수 제출만 필수. 면접에서 영어 능력도 시문' } },
+  /* toyohashi */
+'toyohashi-2027/gakusai': { all: { accept: ['ibt', 'ielts', 'toeic'], min: { toeic: 550, ibt: 42, ielts: 4.0 }, note: '출원 요건 · 2025-01 이후 응시 · TOEIC L&R 공개 테스트 · IELTS Academic(General Training 불가) · 2026-01-21 이후 iBT는 병기된 0~120 점수 참고값 기준(새 밴드 기준점 요강에 없음)' } },
+  /* tsuda */
+// 츠다쥬쿠대학 (tsuda)
+  'tsuda-2027/sogo': { all: { accept: ['ibt', 'ielts'], note: '영어 능력 증명 서류 1개 이상 필수(기준점 없음). TOEFL iBT·IELTS(Academic)·GTEC·TEAP·영검(CSE 4기능) 인정, TOEIC은 L&R+S&W 양쪽(4기능) 필수라 판정 제외. 영검 이외는 2024-04-01 이후 응시분, TOEFL Home Edition 포함·MyBest 불가' } },
+  'tsuda-2027/gakugei': { all: { accept: ['ibt', 'ielts'], note: '영어 능력 증명 서류 1개 이상 필수(기준점 없음). TOEFL iBT·IELTS(Academic)·GTEC·TEAP·영검(CSE 4기능) 인정, TOEIC은 L&R+S&W 양쪽(4기능) 필수라 판정 제외. 영검 이외는 2024-04-01 이후 응시분, TOEFL Home Edition 포함·MyBest 불가' } },
+  /* tsuru */
+// 츠루문과대학 (tsuru) — 영어 외부시험 요구 없음
+  'tsuru-2027/shihi': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  /* tsurumi */
+// 츠루미대학 (tsurumi)
+  'tsurumi-2027/ryugakusei': { all: { accept: [], note: '영어 외부시험 요건 없음 (요강에 영어 점수 제출 항목 없음)' } },
+  /* tuat */
+// 東京農工大学 (tuat) — 農・工 모두 TOEIC L&R 500 또는 TOEFL iBT 52 이상이 출원 요건(IELTS 불가). 2026-01-21 이후 iBT는 요강 환산표로 구점수로 바꿔 합산
+  'tuat-2027/shihi': { all: { accept: ['ibt', 'toeic'], min: { ibt: 52, toeic: 500 }, note: 'TOEIC L&R(공개 테스트 성적증명서 원본) 500 이상 또는 TOEFL iBT 52 이상(Test Date 스코어, ETS 직송 DI C754). IELTS·TOEIC IP 불가. 2026-01-21 이후 iBT 밴드는 요강 환산표(섹션별 구점수 합산)로 52 이상인지 확인 — 밴드 기준 자체는 요강에 없음' } },
+  /* utsunomiya */
+// 우츠노미야대학 (utsunomiya) — 국제학부는 TOEFL iBT·TOEIC L&R·IELTS·GTEC·TEAP 중 1점, 그 외는 TOEFL iBT. 기준점 명시 없음
+  'utsunomiya-2027/a': { all: { accept: ['ibt'], note: '농학부: TOEFL iBT(Home Edition 포함) 공식 스코어만 · 기준점 명시 없음 · My Best 점수 불가' }, by_fac: { '国際学部': { accept: ['ibt', 'ielts', 'toeic'], note: '기준점 명시 없음 — TOEFL iBT·TOEIC L&R(공개 테스트, 과거 3년 이내)·IELTS(과거 2년)·GTEC·TEAP(4기능) 중 1점. GTEC·TEAP는 판정 제외' } } },
+  'utsunomiya-2027/b': { all: { accept: ['ibt'], note: 'TOEFL iBT(Home Edition 포함) 공식 스코어만 · 기준점 명시 없음 · My Best 점수 불가' } },
+  /* wakayama */
+// 와카야마대학 (wakayama) — TOEIC L&R 또는 TOEFL iBT 중 하나가 출원 요건
+  'wakayama-2027/shihi': { by_fac: {
+    '経済学部': { accept: ['ibt', 'toeic'], min: { toeic: 450, ibt: 42, band: 3.0 }, note: 'TOEIC L&R 450 또는 iBT(2026-01-21 이후 밴드 3 이상, 이전 42) 중 하나. 2년 이내 응시분, ITP·IP·My Best 불가' },
+    'システム工学部': { accept: ['ibt', 'toeic'], min: { toeic: 410, ibt: 42, band: 3.0 }, note: 'TOEIC L&R 410 또는 iBT(2026-01-21 이후 밴드 3 이상, 이전 42) 중 하나. 2년 이내 응시분, ITP·IP·My Best 불가' },
+    '観光学部': { accept: ['ibt', 'toeic'], min: { toeic: 450, ibt: 42, band: 3.0 }, note: 'TOEIC L&R 450 또는 iBT(2026-01-21 이후 밴드 3 이상, 이전 42) 중 하나. 2년 이내 응시분, ITP·IP·My Best 불가' } } },
+  /* yokohamabijutsu */
+// 요코하마미술대학 (yokohamabijutsu) — 외국인유학생 입시는 영어 외부시험 요건 없음
+  'yokohamabijutsu-2027/1ki': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
+  'yokohamabijutsu-2027/2ki': { all: { accept: [], note: '영어 외부시험 요건 없음' } }
 };
