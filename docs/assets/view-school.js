@@ -156,9 +156,10 @@
   function yokoOf(u, f) {
     if (!Y) return null;
     const doc = Y.docs.find(d => d.univ.ja === u); if (!doc) return null;
-    const cf = String(f || '').split('-')[0];
+    const fk = v => String(v || '').replace(/・/g, '').replace(/探究/g, '探求').replace(/(学部|学群)$/, '');
+    const cf = fk(String(f || '').split('-')[0]);
     for (const tr of doc.tracks) {
-      const i = tr.units.findIndex(x => { const yf = (x.fac_ja || '').replace(/学部$/, ''); return yf && (yf === cf || cf.startsWith(yf) || yf.startsWith(cf)); });
+      const i = tr.units.findIndex(x => { const yf = fk(x.fac_ja); return yf && (yf === cf || cf.startsWith(yf) || yf.startsWith(cf)); });
       if (i >= 0) return { doc, tr, unit: tr.units[i], i, key: `${doc.id}/${tr.id}/${i}`, link: `#yoko/s/${doc.id}/${tr.id}/${i}` };
     }
     return null;

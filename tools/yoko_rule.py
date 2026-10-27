@@ -45,9 +45,14 @@ def docs():
     return _docs
 
 
+def _fk(s):
+    """학부 이름 비교용: 끝의 学部·学群, 가운뎃점, 探究/探求 표기 차이를 없앤다 (view-school.js yokoOf 와 같은 규칙)"""
+    return re.sub('学部$|学群$', '', _nk(s).replace('・', '').replace('探究', '探求'))
+
+
 def fac_match(data_fac, fac_ja):
-    cf = _nk(data_fac).split('-')[0]
-    yf = re.sub('学部$', '', _nk(fac_ja or ''))
+    cf = _fk(_nk(data_fac).split('-')[0])
+    yf = _fk(fac_ja or '')
     return bool(yf) and (yf == cf or cf.startswith(yf) or yf.startswith(cf))
 
 
