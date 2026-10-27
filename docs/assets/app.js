@@ -60,7 +60,7 @@
   /* 토플 칸 입력 → { t: iBT 0~120, b: 밴드 1~6 }. '92', '4.5', '5.0(100)', '80(4.0)' 모두 됨. 6.5 이하는 밴드, 7~120은 iBT 점수 */
   function parseToefl(v) {
     const out = {};
-    for (const m of String(v ?? '').match(/\d+(?:\.\d+)?/g) || []) { const x = +m; if (x <= 6.5) { if (out.b == null) out.b = x; } else if (x <= 120) { if (out.t == null) out.t = Math.round(x); } }
+    for (const m of String(v ?? '').match(/\d+(?:\.\d+)?/g) || []) { const x = +m; if (x < 1) continue; if (x <= 6.5) { if (out.b == null) out.b = x; } else if (x <= 120) { if (out.t == null) out.t = Math.round(x); } }
     return out;
   }
   const engText = en => { en = en || {}; const t = en.t != null ? (en.b != null ? `${en.t}(${en.b})` : String(en.t)) : en.b != null ? String(en.b) : ''; return { t, x: en.x != null ? String(en.x) : '', i: en.i != null ? String(en.i) : '' }; };

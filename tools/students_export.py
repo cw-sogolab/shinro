@@ -8,10 +8,15 @@
 !! 실제 학생 이름·성적이 들어간다. .gitignore에 있음. 공개 저장소·공개 페이지·메신저로 내보내지 않는다.
    수험번호는 넣지 않는다.
 
-영어 성적(선택): --eng 2026_1회.xlsx 2026_2회.xlsx … (전국모의고사 결과 엑셀)의 「학생정보_2026_N회」 시트에서
+전국모의고사 채점시트로 바로 만들기(권장): --mock 2026_1회_전국모의고사_채점시트.xlsx … 2026_4회….xlsx
+      각 파일의 「종합점수(지망대학포함)」 시트 한 줄 = 학생 한 명 → 모의 N회 점수(일본어=독해+청독해, 기술, 종합, 물리·화학·생물, 수학=코스1(문과)/코스2(이과))와
+      토플·토익·IELTS 를 한 번에 읽는다. 문/이과는 점수로 정한다(과학 점수가 있으면 이과). --src 를 같이 주면 그 파일의 6월 EJU·11월 실제 점수를 이름·캠퍼스로 붙인다.
+
+영어 성적(선택, --src 로 만들 때): --eng 2026_1회.xlsx 2026_2회.xlsx … (전국모의고사 결과 엑셀)의 「학생정보_2026_N회」 시트에서
       이름으로 토플(iBT)·토익·IELTS 를 찾아 학생에 붙인다. 이름이 겹쳐 값이 서로 다르면 붙이지 않는다. 회차가 늦은 값이 앞선 값을 덮는다.
 
-사용: python3 tools/students_export.py [--src <xlsx>] [--eng <xlsx> ...]
+사용: python3 tools/students_export.py --mock <채점시트.xlsx> ... [--src <점수예측 xlsx>]
+      python3 tools/students_export.py --src <점수예측 xlsx> [--eng <xlsx> ...]
 """
 import argparse
 import json
@@ -74,6 +79,8 @@ def parse_toefl(v):
     nums = [float(x) for x in re.findall(r'\d+(?:\.\d+)?', str(v))]
     ibt = band = None
     for x in nums:
+        if x < 1:
+            continue   # 0 은 「없음」
         if x <= 6.5:
             band = band if band is not None else x
         elif x <= 120:
@@ -121,6 +128,81 @@ def eng_map(paths):
     return out
 
 
+def mock_students(paths):
+    """전국모의고사 채점시트들(회차 순서 무관) → 학생 목록. 시트 「종합점수(지망대학포함)」의 한 줄 = 한 명."""
+    by = {}   # (이름, 캠퍼스, 같은 파일 안 몇 번째 동명) → {'rows':{}, 'en':{}}
+    for path in paths:
+        m = re.search(r'2026_(\d)', nfc(Path(path).name))
+        if not m:
+            print(f"[경고] 파일 이름에서 회차를 못 찾아 건너뜀: {Path(path).name}")
+            continue
+        ex = f"m{m.group(1)}"
+        wb = openpyxl.load_workbook(resolve(path), read_only=True, data_only=True)
+        ws = next((wb[x] for x in wb.sheetnames if nfc(x) == "종합점수(지망대학포함)"), None)
+        if ws is None:
+            print(f"[경고] 「종합점수(지망대학포함)」 시트 없음: {Path(path).name}")
+            continue
+        R = list(ws.iter_rows(values_only=True))
+        hi = next((i for i, r in enumerate(R) if r and any(nfc(str(c or "")).strip() == "이름" for c in r)), None)
+        if hi is None:
+            continue
+        h = {}
+        for i, c in enumerate(R[hi]):
+            if c is not None:
+                h.setdefault(nfc(str(c)).replace("\n", "").replace(" ", ""), i)
+        need = ["이름", "독해", "청독해"]
+        if any(k not in h for k in need):
+            print(f"[경고] 필요한 칸(이름·독해·청독해)이 없어 건너뜀: {Path(path).name}")
+            continue
+        g = lambda r, k: num(r[h[k]]) if k in h and h[k] < len(r) else None
+        seen = {}
+        for r in R[hi + 1:]:
+            if not r or h["이름"] >= len(r) or not r[h["이름"]]:
+                continue
+            name = nfc(r[h["이름"]]).strip()
+            camp = nfc(r[h["캠퍼스구분"]] or "").strip() if "캠퍼스구분" in h and h["캠퍼스구분"] < len(r) else ""
+            seen[(name, camp)] = seen.get((name, camp), 0) + 1
+            key = (name, camp, seen[(name, camp)])
+            du, cd = g(r, "독해"), g(r, "청독해")
+            sc = {"so": g(r, "종과") or g(r, "종합"), "ki": g(r, "기술"), "phy": g(r, "물리"), "chem": g(r, "화학"), "bio": g(r, "생물"), "c1": g(r, "코스1"), "c2": g(r, "코스2")}
+            jp = (du or 0) + (cd or 0) if (du or cd) else None
+            tf, tx, il = (r[h["토플"]] if "토플" in h and h["토플"] < len(r) else None), g(r, "토익"), g(r, "IELTS")
+            ent = by.setdefault(key, {"rows": {}, "sc": [], "en": {}})
+            ent["rows"][ex] = {"jp": jp, **sc}
+            t, b = parse_toefl(tf)
+            for k, v in (("t", t), ("b", b), ("x", round(tx) if tx and tx > 0 else None), ("i", il if il and il > 0 else None)):
+                if v is not None:
+                    ent["en"][k] = v   # 회차 순서로 읽으므로 늦은 값이 덮음 (아래에서 정렬)
+    out = []
+    for (name, camp, n), ent in by.items():
+        rows, sci = {}, {"phy": 0, "chem": 0, "bio": 0}
+        for ex, v in sorted(ent["rows"].items()):
+            for s_ in sci:
+                if v.get(s_):
+                    sci[s_] += 1
+        kind = "이과" if sum(1 for x in sci.values() if x) >= 2 else "문과"
+        top = [k for k, _ in sorted(sci.items(), key=lambda x: -x[1])[:2]]
+        for ex, v in sorted(ent["rows"].items()):
+            o = {}
+            for s_, val in (("jp", v["jp"]), ("so", v["so"]), ("ki", v["ki"]), ("math", v["c2"] if kind == "이과" else v["c1"]), ("phy", v["phy"]), ("chem", v["chem"]), ("bio", v["bio"])):
+                if kind == "문과" and s_ in ("phy", "chem", "bio"):
+                    continue
+                if val is None or not (0 < val <= MAX[s_]) or (s_ == "jp" and val < 50):
+                    continue
+                o[s_] = round(val)
+            if o:
+                rows[ex] = o
+        if not rows:
+            continue
+        st = {"n": name, "c": camp, "k": kind, "rows": rows}
+        if kind == "이과":
+            st["sci"] = top
+        if ent["en"]:
+            st["en"] = ent["en"]
+        out.append(st)
+    return out
+
+
 def sheet(ws, kind):
     R = [list(r) for r in ws.iter_rows(values_only=True)]
     hi = next(i for i, r in enumerate(R) if r and nfc(r[0] or "") == "이름")
@@ -155,19 +237,41 @@ def sheet(ws, kind):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src", default=DEFAULT)
+    ap.add_argument("--src", default=None, help="점수예측 엑셀 (「11월예측_문과·이과」 시트). --mock 과 같이 주면 6월 EJU·11월 실제 점수만 붙인다")
+    ap.add_argument("--mock", nargs="+", metavar="XLSX", help="전국모의고사 채점시트 (모의 1~4회 점수와 토플·토익·IELTS 가 같이 든 파일)")
+    ap.add_argument("--out", default=str(OUT), help="내보낼 파일 (기본 docs/assets/students.js)")
     ap.add_argument("--eng", nargs="+", metavar="XLSX", help="전국모의고사 결과 엑셀 (토플·토익·IELTS 가 든 「학생정보_2026_N회」 시트)")
     a = ap.parse_args()
-    src = resolve(a.src)
-    wb = openpyxl.load_workbook(src, read_only=True, data_only=True)
+    if not a.src and not a.mock:
+        ap.error("--mock <채점시트.xlsx …> 또는 --src <점수예측.xlsx> 가 필요합니다")
     lst = []
-    for name, kind in (("11월예측_문과", "문과"), ("11월예측_이과", "이과")):
-        ws = next((wb[s] for s in wb.sheetnames if nfc(s) == name), None)
-        if ws is None:
-            print(f"[경고] 시트 없음: {name}")
-            continue
-        lst += sheet(ws, kind)
+    if a.src:
+        src = resolve(a.src)
+        wb = openpyxl.load_workbook(src, read_only=True, data_only=True)
+        for name, kind in (("11월예측_문과", "문과"), ("11월예측_이과", "이과")):
+            ws = next((wb[s] for s in wb.sheetnames if nfc(s) == name), None)
+            if ws is None:
+                print(f"[경고] 시트 없음: {name}")
+                continue
+            lst += sheet(ws, kind)
+    if a.mock:
+        ml = mock_students(a.mock)
+        if lst:   # 점수예측 파일의 6월 EJU·11월 실제를 이름·캠퍼스로 붙인다 (없는 학생은 점수예측 쪽 기록을 그대로 둔다)
+            old = {(s["n"], s["c"]): s for s in lst}
+            hit = 0
+            for s in ml:
+                o = old.pop((s["n"], s["c"]), None)
+                if o:
+                    for ex in ("e6", "e11"):
+                        if ex in o["rows"]:
+                            s["rows"][ex] = o["rows"][ex]
+                    hit += 1
+            print(f"점수예측 파일과 이름·캠퍼스가 맞은 학생 {hit}명 (6월 EJU·11월 실제 점수 붙임)")
+            ml += list(old.values())
+        lst = ml
+        src = Path(a.mock[0])
     # 같은 이름·캠퍼스·계열이 겹치면 번호를 붙여 구분
+    lst.sort(key=lambda s: (s["k"], s["n"], s["c"]))
     seen = {}
     for s in lst:
         k = (s["n"], s["c"], s["k"])
@@ -183,11 +287,11 @@ def main():
                 s["en"] = e
                 hit += 1
         print(f"영어 성적: 시트에서 {len(em)}명 → 학생 {hit}명에게 붙임")
-    payload = {"built": date.today().isoformat(), "source": src.name, "list": lst}
-    OUT.write_text("/* 자동 생성 — tools/students_export.py. 실제 학생 이름·성적: 이 컴퓨터 밖으로 내보내지 않는다 (.gitignore) */\n"
+    payload = {"built": date.today().isoformat(), "source": src.name if a.src or not a.mock else "전국모의고사 채점시트 %d개" % len(a.mock), "list": lst}
+    Path(a.out).write_text("/* 자동 생성 — tools/students_export.py. 실제 학생 이름·성적: 이 컴퓨터 밖으로 내보내지 않는다 (.gitignore) */\n"
                    "window.STUDENTS = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
     n = {k: sum(1 for s in lst if s["k"] == k) for k in ("문과", "이과")}
-    print(f"완료: 문과 {n['문과']}명, 이과 {n['이과']}명 → {OUT.relative_to(ROOT)}")
+    print(f"완료: 문과 {n['문과']}명, 이과 {n['이과']}명 → {a.out}")
 
 
 if __name__ == "__main__":
