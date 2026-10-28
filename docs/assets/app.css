@@ -320,19 +320,22 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-rpt .ig-school b { font-size: 12px; } .sh-rpt .ig-school .ig-jp { font-size: 10.5px; color: #4a4a47; }
 .sh-rpt td, .sh-rpt th { padding: 2px 6px; line-height: 18px; }
 .sh-rpt-ct .ig-school { min-width: 0; }
-.sh-rpt-scn { display: grid; gap: 12px; }
+.sh-rpt-scn { display: flex; flex-direction: column; gap: 10px; }
+.sh-rpt-blk { break-inside: avoid; }
 .sh-rpt-sh { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 6px; background: #efefec; font-size: 12px; }
 .sh-rpt-sh span { color: #4a4a47; font-variant-numeric: tabular-nums; }
-.sh-rpt-tb { table-layout: fixed; }
-.sh-rpt-tb td.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sh-rpt-tb td.num { width: 44px; }
-.sh-rpt-tb tr.zh td { border-bottom: 0; padding-top: 4px; }
+.sh-rpt-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; padding: 6px 2px 2px; }
+.sh-rpt-zone ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.sh-rpt-zone li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid #e3e3df; line-height: 16px; font-size: 12px; }
+.sh-rpt-zone li .nm { overflow-wrap: anywhere; }
+.sh-rpt-zone li b { flex: none; font-variant-numeric: tabular-nums; }
 .sh-rpt-curves { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
 .sh-rpt-ct { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
 .sh-rpt-ct > span { white-space: nowrap; font-size: 12px; }
 .sh-rpt .ig-chart svg { width: 100%; height: auto; display: block; }
 .sh-rpt .ig-chart text { font-size: 10px; }
-@media print { .sh-rpt { padding: 10mm 14mm 9mm; } .ig-main { padding: 0 !important; max-width: none !important; display: block !important; } .sh-rpt-bar { display: none !important; } }
+@page { size: A4; margin: 12mm 14mm; }
+@media print { .sh-rpt { padding: 0; height: auto; min-height: 0; overflow: visible; width: auto; } .sh-rpt section, .sh-rpt-curves > div { break-inside: avoid; } .ig-main { padding: 0 !important; max-width: none !important; display: block !important; } .sh-rpt-bar { display: none !important; } }
 
 /* 학교 찾기: 영어 성적 칸 */
 .sh-en { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 150px; font-size: 12px; }
@@ -361,3 +364,20 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-scroll { max-height: min(68vh, 640px); overflow: auto; }
 .sh-scroll thead th { position: sticky; top: 0; z-index: 3; background: var(--surface); box-shadow: 0 1px 0 var(--line); }
 .sh-scroll thead th:first-child { z-index: 4; }
+
+.ig-eju span { white-space: nowrap; }
+
+/* ---------- 글로벌 메뉴: 한 줄에 안 들어가면 햄버거로 ---------- */
+.sh-menu-btn { display: none; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: calc(var(--space-2) * -1); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink); cursor: pointer; }
+.sh-menu-btn:hover { background: var(--surface-hover); }
+@media (max-width: 1420px) {
+  .sh-menu-btn { display: inline-flex; }
+  .ig-appbar__in { position: relative; flex-wrap: nowrap; gap: var(--space-3); }
+  .ig-appbar__nav { position: absolute; top: 100%; left: var(--space-4); width: min(360px, calc(100vw - 2 * var(--space-4))); display: none; flex-direction: column; gap: 2px; margin: 0; padding: var(--space-2); overflow: visible;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--shadow-pop); }
+  .ig-appbar.is-menu .ig-appbar__nav { display: flex; }
+  .ig-appbar__nav a { min-height: 46px; width: 100%; }
+  .ig-appbar__nav a[aria-current="page"] { background: var(--surface-hover); }
+  .ig-appbar__nav a[aria-current="page"]::after { display: none; }
+  .sh-appsearch { margin-left: auto; flex: 0 1 260px; }
+}

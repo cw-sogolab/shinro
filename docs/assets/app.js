@@ -91,7 +91,8 @@
     const tf = th && (th.band != null ? `TOEFL 밴드 ${th.band}${th.ibt != null ? ` (구 ${th.ibt}점)` : ''}` : th.ibt != null ? `TOEFL ${th.ibt}점` : '');
     const req = `${r.accept.map(k => NAME[k]).join('·')}${r.accept.length > 1 ? ' 중 하나' : '만'} · ${th ? [r.accept.includes('ibt') ? tf : '', r.accept.includes('ielts') && th.ielts != null ? `IELTS ${th.ielts}` : '', r.accept.includes('toeic') && th.toeic != null ? `TOEIC ${th.toeic}` : ''].filter(Boolean).join(' / ') + ' 이상' : '기준점 없음 (제출 필수)'}`;
     if (!mine.length) return { req, st: 'no', t: '점수 없음', why: (have.ibt || have.ielts || have.toeic) ? `인정 시험: ${r.accept.map(k => NAME[k]).join('·')}` : '영어 점수를 넣으면 판정', note: r.note };
-    if (!th) return { req, st: 'ok', t: '제출 가능', why: '기준점 없음 (제출 필수)', note: r.note };
+    const mineTxt = mine.map(k => k === 'ibt' ? `TOEFL ${engText(en).t}` : k === 'ielts' ? `IELTS ${en.i}` : `TOEIC ${en.x}`).join(' · ');
+    if (!th) return { req, st: 'ok', t: '제출 가능', why: `${mineTxt} 제출`, note: r.note };
     const tries = mine.map(k => {
       if (k === 'ielts') return th.ielts == null ? { ok: true, why: 'IELTS (기준 없음)' } : { ok: en.i >= th.ielts, why: `IELTS ${en.i} / ${th.ielts}` };
       if (k === 'toeic') return th.toeic == null ? { ok: true, why: 'TOEIC (기준 없음)' } : { ok: en.x >= th.toeic, why: `TOEIC ${en.x} / ${th.toeic}` };
@@ -257,7 +258,7 @@
     const subs = subjects();
     const seg = (id, items, on, label) => `<div class="ig-seg" role="group" aria-label="${label}" id="${id}">${items.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${on(v)}">${l}</button>`).join('')}</div>`;
     app.innerHTML = `
-      ${pagehead('진학 상담 · 예측·추천', esc(S.name), S.src ? `${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · 「${esc(STU.source)}」(${esc(STU.built)} 기준)에서 불러옴 · 점수를 고치면 이 화면에서만 바뀜` : `${S.kind} · 성적 → 다음 EJU 예측 → 안정·적정·도전 추천 → 비교에 담기`,
+      ${pagehead('진학 상담 · 예측·추천', esc(S.name), S.src ? `${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · 학생 데이터(${esc(STU.built)} 기준)에서 불러옴 · 점수를 고치면 이 화면에서만 바뀜` : `${S.kind} · 성적 → 다음 EJU 예측 → 안정·적정·도전 추천 → 비교에 담기`,
         `<a class="ig-btn" href="#report">${icon('file')}상담 리포트 (PDF)</a><a class="ig-btn" href="#curve">${icon('chart')}합격 곡선 모아 보기</a><button type="button" class="ig-btn ig-btn--ghost" id="reset">${icon('edit')}예시 점수로 되돌리기</button>`)}
       <section>
         ${sectionH(1, '성적', '모의고사와 EJU를 따로 표시 · 본 시험만 입력')}
@@ -588,7 +589,7 @@
   }
 
   /* ---------- 상담 리포트: 모의고사 예측·추천 + 합격 곡선을 A4 한 장으로 (인쇄 창에서 「PDF로 저장」) ---------- */
-  const RPT_PER_ZONE = 3, RPT_CURVES = 4;
+  const RPT_PER_ZONE = 5, RPT_CURVES = 4;
   function viewReport() {
     const P = predict();
     if (P.total == null) {
@@ -613,12 +614,12 @@
     const sdOf = s => P.sd ? P.sd * (SUBJ_SD[s] || 10) / Math.sqrt(P.fullVar) : 0;
     const subRow = s => { const v = P.subj[s]; if (!v) return `<tr><td>${SUBJ[s]}</td><td class="num">—</td><td class="num">—</td></tr>`; const d = sdOf(s);
       return `<tr><td>${SUBJ[s]} <span class="sh-rpt-mute">/${MAXS[s]}</span></td><td class="num"><b>${Math.round(v.fin)}</b></td><td class="num">${d ? `${Math.max(0, Math.round(v.fin - d))}~${Math.min(REALMAX[s] || MAXS[s], Math.round(v.fin + d))}` : '실제'}</td></tr>`; };
-    const scnCol = x => `<div><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><table class="sh-rpt-tb"><tbody>${ZONES.map(([z]) => `<tr class="zh"><td colspan="2">${zoneChip(z)}</td></tr>`
-      + (x.lists[z].slice(0, RPT_PER_ZONE).map(r => `<tr><td class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</td><td class="num"><b>${pct(r.p)}</b></td></tr>`).join('') || '<tr><td colspan="2" class="sh-rpt-mute">해당 학부 없음</td></tr>')).join('')}</tbody></table></div>`;
+    const scnCol = x => `<div class="sh-rpt-blk"><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><div class="sh-rpt-zones">${ZONES.map(([z]) =>
+      `<div class="sh-rpt-zone"><div>${zoneChip(z)}</div><ul>${x.lists[z].slice(0, RPT_PER_ZONE).map(r => `<li><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b></li>`).join('') || '<li class="sh-rpt-mute">해당 학부 없음</li>'}</ul></div>`).join('')}</div></div>`;
     const trend = trendOpts(P, lo, hi, true);
     const dateTxt = `${TODAY.getFullYear()}년 ${md(ISO)}`;
     app.innerHTML = `
-      <div class="ig-noprint sh-rpt-bar"><div><b>상담 리포트</b> <span class="ig-muted">A4 한 장 · 인쇄 창에서 「대상: PDF로 저장」을 고르세요</span></div>
+      <div class="ig-noprint sh-rpt-bar"><div><b>상담 리포트</b> <span class="ig-muted">A4 · 내용이 많으면 여러 쪽 · 인쇄 창에서 「대상: PDF로 저장」을 고르세요</span></div>
         <div class="sh-row"><a class="ig-btn" href="#pred">${icon('trend')}예측·추천으로</a><button type="button" class="ig-btn ig-btn--primary" id="rprint">${icon('file')}PDF로 저장</button></div></div>
       <div class="ig-sheet-wrap"><article class="ig-sheet sh-rpt">
         <div class="ig-sheet__head"><div><h1>상담 리포트 · ${esc(S.name)}</h1><div class="sh-rpt-mute">${dateTxt} · ${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · ${TGT_LABEL[P.target].replace(' 점수', '')}</div></div><img class="ig-logo--light" src="../design/assets/ilgong-logo.png" alt="일공학원"></div>
@@ -627,7 +628,7 @@
             <div><div class="sh-rpt-total"><span class="sh-rpt-mute">${isAct ? '11월 EJU 총점' : '예상 총점'} (기술 제외)</span><b>${Math.round(P.total)}</b><span>${isAct ? '점 · 실제' : `점 · 보통 ${lo}~${hi}`}</span></div>
               <table><thead><tr><th>과목</th><th class="num">${isAct ? '점수' : '예상'}</th><th class="num">${isAct ? '' : '보통 범위'}</th></tr></thead><tbody>${parts().map(subRow).join('')}</tbody></table></div></div></section>
         <section><h2>2. 추천 학교 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
-          <div class="sh-rpt-scn" style="grid-template-columns:repeat(${scens.length},1fr)">${scens.map(scnCol).join('')}</div></section>
+          <div class="sh-rpt-scn">${scens.map(scnCol).join('')}</div></section>
         <section><h2>3. 합격 곡선 <span class="sh-rpt-mute">${fromCmp.length ? '비교에 담은 학교' : '추천 학교 가운데 상담할 만한 곳'} · 점 = 실제 합격 비율 · 세로선 = 학생 예측</span></h2>
           <div class="sh-rpt-curves">${picks.length ? picks.map((r, i) => `<div><div class="sh-rpt-ct">${school(r.u)}<span>${zoneChip(r.z)} <b>${pct(r.p)}</b></span></div><div class="ig-chart" id="rc${i}"></div></div>`).join('') : '<p class="sh-rpt-mute">곡선이 있는 추천 학교가 없습니다.</p>'}</div></section>
         <div class="ig-sheet__foot">참고용 · 합격을 보장하지 않음 · 최종 판단은 상담 강사와 함께 합니다. 예측 점수는 범위로 보며, 합격 가능성은 과거 비슷한 점수 지원자 중 합격한 비율입니다.${nref ? ` 점수만으로 잘 갈리지 않거나 자료가 적은 ${nref}개 학부는 이 표에서 뺐습니다.` : ''} 학원 내부 자료 · 외부 반출 금지.</div>
@@ -688,6 +689,16 @@
     cmpKeyForYoko, toggleCmp, addBtn, save, engJudge, engSummary, engInputsHtml, bindEngInputs, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
   document.querySelectorAll('[data-t]').forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.t); });
   window.addEventListener('hashchange', route);
+  /* 메뉴가 한 줄에 안 들어가는 화면에서는 햄버거 버튼으로 전체 메뉴를 펼친다 (가로로 스크롤해서 찾지 않아도 되게) */
+  (() => {
+    const bar = document.querySelector('.ig-appbar'), mb = document.getElementById('menuBtn'); if (!bar || !mb) return;
+    const set = on => { bar.classList.toggle('is-menu', on); mb.setAttribute('aria-expanded', String(on)); };
+    mb.onclick = () => set(!bar.classList.contains('is-menu'));
+    bar.querySelectorAll('.ig-appbar__nav a').forEach(a => a.addEventListener('click', () => set(false)));
+    document.addEventListener('click', e => { if (!bar.contains(e.target)) set(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+    window.addEventListener('hashchange', () => set(false));
+  })();
   const verEl = document.getElementById('ver'); if (verEl) verEl.textContent = `${C.version || 'v1'} · ${C.units.length}개`;
   document.getElementById('foot').innerHTML = `예측 모델 ${esc(M.built)} · 합격 곡선 ${C.units.length}개 학부 (${C.years[0]}~${C.years[1]}) · 모집요강 ${Y ? Y.docs.length : 0}건${window.MOCK ? ` · 모의고사 ${window.MOCK.year}년 ${window.MOCK.rounds.length}회분` : ''} · 학생 이름·점수는 이 브라우저에만 저장되고 서버로 보내지 않습니다. 합격·모의고사 데이터는 학원 밖 공유 금지.`;
   setCmp(cmp);
