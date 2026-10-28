@@ -141,7 +141,7 @@
     const B = { ok: 'success', ng: 'warning', no: '', check: '' }[j.st];
     const full = [en.tests, en.min].filter(Boolean).join(' — ');   // 요강 원문 정리: 마우스를 올리면 보인다
     return `<div class="sh-en" title="${esc(full)}"><span><span class="ig-badge ig-badge--${un.en === 'R' ? 'warning' : 'info'}">${un.en === 'R' ? '필요' : '선택'}</span> <span>${esc(j.req || en.tests || '')}</span></span>${!j.req && en.min ? `<small>${esc(en.min)}</small>` : ''}
-      <span class="sh-en__j"><span class="ig-badge${B ? ' ig-badge--' + B : ''}">${esc(j.t)}</span>${j.why ? `<small>${esc(j.why)}</small>` : ''}</span>${j.note ? `<small>${esc(j.note)}</small>` : ''}</div>`;
+      <span class="sh-en__j"><span class="ig-badge${B ? ' ig-badge--' + B : ''}">${esc(j.t)}</span>${j.why ? `<small>${esc(j.why)}</small>` : ''}</span>${j.note && !/기준점|제출 필수/.test(j.note) ? `<small>${esc(j.note)}</small>` : ''}</div>`;
   }
 
   /* 학교·학부 하나를 학생 점수로 평가 */
@@ -394,7 +394,7 @@
         <div class="ig-card ig-card--flush"><div class="ig-table-wrap sh-scroll"><table class="ig-table ig-table--sticky">
           <thead><tr><th>학교 · 학부</th><th>전형</th><th>EJU 조건</th><th>영어 조건</th><th>판정</th><th>출원</th></tr></thead>
           <tbody>${L.map(x => `<tr><td><a class="ig-school sh-schoollink" href="${x.doc.id ? `#yoko/s/${x.doc.id}/${x.tr.id}/${x.i}` : ''}"><b>${esc(nameU(x.doc.univ.ja))} ${esc(x.un.fac)}</b><span class="ig-jp" lang="ja">${esc(x.doc.univ.ja)} ${esc(x.un.fac_ja || '')}${x.un.dept ? ' · ' + esc(x.un.dept) : ''}</span></a></td>
-            <td style="font-size:13px">${esc(x.tr.name_ko)}</td>
+            <td style="font-size:13px;min-width:150px">${esc(x.tr.name_ko)}</td>
             <td><div class="ig-eju">${Object.keys(LAB).filter(k => ['R', 'C'].includes((x.un.eju || {})[k])).map(k => `<span class="${x.un.eju[k] === 'R' ? 'r' : 'c'}">${LAB[k]}${x.un.eju[k] === 'C' ? '(선택)' : ''}</span>`).join('')}</div></td>
             <td>${enCell({ doc: x.doc, unit: x.un, tr: x.tr })}</td>
             <td>${B[x.st]}<span class="sh-sub">${esc(x.why)}</span></td><td style="white-space:nowrap">${SH.md(x.apply.end || x.apply.start)} ${SH.dday(x.apply)}</td></tr>`).join('')}</tbody></table></div></div>`;
