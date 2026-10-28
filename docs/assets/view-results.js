@@ -34,6 +34,17 @@
 
   /* ---------- 행(지원자 한 줄) ---------- */
   const ROWS = R.rows.split(';');
+  /* 한 회차의 과목(일본어·記述·물리·화학·생물·종합·수학1·수학2·총점)으로 본 계열: 1 문과 · 2 이과 · 3 일본어만 · 0 판정 불가 (schools_export 와 같은 규칙) */
+  function roundKind(s) {
+    const sci = (s[2] != null) + (s[3] != null) + (s[4] != null);
+    if (s[0] != null && s[5] != null && sci === 0) return 1;
+    if (s[0] != null && sci >= 2 && s[5] == null) return 2;
+    if (s[0] != null && s[5] == null && sci === 0 && s[6] == null && s[7] == null) return 3;
+    return 0;
+  }
+  /* 점수가 하나도 없는 회차는 건드릴 것이 없고, 있으면 그 회차의 계열이 요강이 인정하는 계열(mask)이어야 한다 */
+  const roundOk = (s, mask) => s.every(x => x == null) || ((k) => k > 0 && (mask & (1 << (k - 1))) !== 0)(roundKind(s));
+
   /* 조건(학교·학부·학과·구분)에 맞는 지원자 한 줄씩 */
   function collect(scope, from, to, g1) {
     const out = [];
@@ -46,7 +57,10 @@
         const v = c.map(x => x === '' ? null : +x);
         // 2027 모집요강이 있는 학부(mask>0)는 요강이 인정하는 계열의 지원자만 (1 문과·2 이과·4 일본어만)
         if (mask) { out.yk = true; const kc = v[22]; if (!kc || !(mask & (1 << (kc - 1)))) { out.skipped = (out.skipped || 0) + 1; continue; } }
-        out.push({ ui, f, d, y, p: v[1] === 1, s6: v.slice(2, 11), s11: v.slice(11, 20), toefl: v[20], toeic: v[21] });
+        let s6 = v.slice(2, 11), s11 = v.slice(11, 20);
+        // 회차마다 응시한 과목으로 계열을 따로 봐서, 요강이 인정하지 않는 계열로 본 회차(예: 문과 학부인데 6월에 이과 과목)는 과목 점수에서 뺀다
+        if (mask) { if (!roundOk(s6, mask)) s6 = s6.map(() => null); if (!roundOk(s11, mask)) s11 = s11.map(() => null); }
+        out.push({ ui, f, d, y, p: v[1] === 1, s6, s11, toefl: v[20], toeic: v[21] });
       }
     }
     return out;
