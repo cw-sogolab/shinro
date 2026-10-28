@@ -8,7 +8,11 @@
   const A = 'assets/';
   const URL_ = (window.SHINRO_CONFIG || {}).API_URL || '';
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error(src)); document.body.appendChild(s); });
+  const loadTag = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error(src)); document.body.appendChild(s); });
+  /* 화면 코드는 매번 서버에 최신인지 확인해서 받는다(바뀌지 않았으면 304 로 거의 받지 않음). 그냥 script 태그로 불러오면 GitHub Pages 의 10분 캐시 때문에
+   * 새로 배포해도 한동안 옛 화면이 보이고, 강력 새로고침도 이렇게 늦게 불러온 파일에는 듣지 않는다. file:// 로 열 때는 fetch 가 안 되므로 태그로 */
+  const load = src => location.protocol === 'file:' ? loadTag(src)
+    : fetch(src, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(src); return r.text(); }).then(t => { run(t); });
   const run = text => { const s = document.createElement('script'); s.text = text; document.body.appendChild(s); };
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* 막힌 환경 */ } }, del: k => { try { sessionStorage.removeItem(k); } catch (e) { /* */ } } };
 
