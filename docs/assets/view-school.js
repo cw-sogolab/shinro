@@ -91,9 +91,15 @@
   const val = v => v !== '' && v != null && !isNaN(+v) ? +v : null;
   function ejuSes() { const S = SH.S, has = id => Object.values(S.rows[id] || {}).some(v => val(v) != null); return store.get('findSes', null) || (has('e11') ? 'e11' : 'e6'); }
   function hasMock() { const S = SH.S; return ['m1', 'm2', 'm3', 'm4'].some(id => Object.values(S.rows[id] || {}).some(v => val(v) != null)); }
+  /* 실제 EJU 점수가 비어 있는데 모의고사가 있으면(채점시트로 만든 학생은 6월·11월 EJU 점수가 없음) 모의고사 반영 예측으로 비교한다 */
+  function findMode() {
+    const m = store.get('findMode', null);   // 사용자가 직접 고른 값이 있으면 그대로
+    if (m) return m;
+    return hasMock() && !Object.values(SH.S.rows[ejuSes()] || {}).some(v => val(v) != null) ? 'pred' : 'actual';
+  }
   /* mode: actual(실제 EJU) | pred(모의고사까지 넣은 예측) */
   function student() {
-    const S = SH.S, mode = store.get('findMode', 'actual');
+    const S = SH.S, mode = findMode();
     if (mode === 'pred' && hasMock()) {
       const P = SH.predict();
       if (P.total != null) return { mode, S, kind: S.kind, vec: P.vec, P, sd: P.sd, label: { e6: '6월 EJU 예측', e11: '11월 EJU 예측', a11: '11월 EJU 실제' }[P.target] };
@@ -247,7 +253,7 @@
   function viewFind() {
     const S = SH.S;
     if (!SC) { app.innerHTML = pagehead('진학 상담 · ① EJU로 학교 찾기', '학교 찾기', '') + `<div class="ig-card ig-empty">${icon('school', '')}<b>합격 데이터가 없어요</b><p><code>python3 tools/schools_export.py</code>로 assets/schools.js를 만드세요.</p></div>`; return; }
-    const ses = ejuSes(), mode = store.get('findMode', 'actual'), per = store.get('findPer', 'r');
+    const ses = ejuSes(), mode = findMode(), per = store.get('findPer', 'r');
     const subs = S.kind === '문과' ? ['jp', 'so', 'math', 'ki'] : ['jp', S.sci[0], S.sci[1], 'math', 'ki'];
     const seg = (id, items, on, label) => `<div class="ig-seg" role="group" aria-label="${label}" id="${id}">${items.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${on(v)}">${l}</button>`).join('')}</div>`;
     app.innerHTML = `
@@ -275,7 +281,7 @@
           ${seg('fsort', [['near', '내 점수대 먼저'], ['pos', '여유 있는 순'], ['n', '합격자 많은 순'], ['med', '합격 점수 높은 순']], v => v === store.get('fsort', 'near'), '정렬')}
           <label class="sh-check"><input type="checkbox" id="fsmall" ${store.get('fsmall', false) ? 'checked' : ''}>합격자 3명 미만도</label>
         </div>
-        <div class="ig-card ig-card--flush"><div class="ig-table-wrap"><table class="ig-table ig-table--sticky sh-findtab">
+        <div class="ig-card ig-card--flush"><div class="ig-table-wrap sh-scroll"><table class="ig-table ig-table--sticky sh-findtab">
           <thead><tr><th>학교 · 학부</th><th class="num">합격 / 지원</th><th style="min-width:220px">합격자 점수대 <span class="ig-muted">(점 = 학생)</span></th><th>내 위치</th><th>합격 가능성</th><th>영어 성적 <span class="ig-muted">(모집요강)</span></th><th>모집요강</th><th></th></tr></thead>
           <tbody id="frows"></tbody></table></div>
           <div class="ig-card__foot sh-row" style="justify-content:space-between"><span class="ig-muted" id="fcount" style="font-size:12px"></span><button type="button" class="ig-btn ig-btn--sm" id="fmore">더 보기</button></div></div>
@@ -297,7 +303,7 @@
     app.querySelectorAll('.sh-ejuin input').forEach(inp => inp.oninput = () => {
       const s = inp.dataset.s; S.rows[ses] = S.rows[ses] || {}; const v = inp.value.trim();
       if (v === '') delete S.rows[ses][s]; else S.rows[ses][s] = +v; SH.save();
-      if (store.get('findMode', 'actual') !== 'actual') store.set('findMode', 'actual');
+      if (store.get('findMode', null) !== 'actual') store.set('findMode', 'actual');   // 점수를 직접 넣으면 실제 점수로 비교
       clearTimeout(viewFind.t); viewFind.t = setTimeout(() => drawAll(), 120);
     });
     let shown = 60;
@@ -383,7 +389,7 @@
       L.sort((a, b) => b.st - a.st || (a.apply.end || a.apply.start).localeCompare(b.apply.end || b.apply.start));
       const B = { 3: '<span class="ig-badge ig-badge--success">조건 충족</span>', 2: '<span class="ig-badge ig-badge--info">과목 충족 · 기준점 없음</span>', 1: '<span class="ig-badge ig-badge--warning">조건 미달</span>', 0: '<span class="ig-badge">점수 없음</span>' };
       box.innerHTML = `<div class="ig-section-h"><h2>이 성적 조합으로 낼 수 있는 전형</h2><span class="ig-muted sh-sec-meta">정리된 모집요강 ${Y.docs.length}건 · 판정은 EJU 과목·기준점만 따짐 (영어는 요구 조건만 표시, 서류는 요강에서 확인)</span></div>
-        <div class="ig-card ig-card--flush"><div class="ig-table-wrap"><table class="ig-table ig-table--sticky">
+        <div class="ig-card ig-card--flush"><div class="ig-table-wrap sh-scroll"><table class="ig-table ig-table--sticky">
           <thead><tr><th>학교 · 학부</th><th>전형</th><th>EJU 조건</th><th>영어 조건</th><th>판정</th><th>출원</th></tr></thead>
           <tbody>${L.map(x => `<tr><td><a class="ig-school sh-schoollink" href="${x.doc.id ? `#yoko/s/${x.doc.id}/${x.tr.id}/${x.i}` : ''}"><b>${esc(nameU(x.doc.univ.ja))} ${esc(x.un.fac)}</b><span class="ig-jp" lang="ja">${esc(x.doc.univ.ja)} ${esc(x.un.fac_ja || '')}${x.un.dept ? ' · ' + esc(x.un.dept) : ''}</span></a></td>
             <td style="font-size:13px">${esc(x.tr.name_ko)}</td>

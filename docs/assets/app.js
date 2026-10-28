@@ -132,7 +132,7 @@
   function subjects() { return S.kind === '문과' ? ['jp', 'so', 'math', 'ki'] : ['jp', S.sci[0], S.sci[1], 'math', 'ki']; }
   function parts() { return S.kind === '문과' ? ['jp', 'so', 'math'] : ['jp', S.sci[0], S.sci[1], 'math']; }
   function hasRow(id) { const r = S.rows[id] || {}; return subjects().some(s => r[s] !== '' && r[s] != null && !isNaN(+r[s])); }
-  function autoTarget() { return hasRow('e11') ? 'a11' : hasRow('e6') ? 'e11' : 'e6'; }
+  function autoTarget() { return hasRow('e11') ? 'a11' : 'e11'; }   // 다음 시험은 11월 EJU (6월은 이미 지났으므로 6월 예측은 쓰지 않는다)
   /* 과목별 예측 점수 → 조합 점수 계산에 쓰는 벡터 */
   function vecFrom(P) {
     const sc = S.sci;
@@ -140,7 +140,7 @@
              r: S.kind === '이과' && P[sc[0]] && P[sc[1]] ? P[sc[0]].fin + P[sc[1]].fin : undefined, m2: S.kind === '이과' ? P.math?.fin : undefined };
   }
   function predict() {
-    const target = S.target === 'auto' ? autoTarget() : S.target;
+    const target = S.target === 'auto' || S.target === 'e6' ? autoTarget() : S.target;
     const out = { target, subj: {}, used: new Set() };
     for (const s of subjects()) {
       if (target === 'a11') { const v = +S.rows.e11?.[s]; if (S.rows.e11?.[s] !== '' && S.rows.e11?.[s] != null && !isNaN(v)) out.subj[s] = { fin: v, raw: v }; out.used.add('e11'); continue; }
@@ -325,7 +325,7 @@
     const tl = TGT_LABEL[P.target];
     const used = EXAMS.filter(e => P.used.has(e.id)).map(e => e.short).join(' · ');
     document.getElementById('predmeta').textContent = `${tl.replace(' 점수', '')} · ${used ? used + ' 반영' : '반영한 시험 없음'}`;
-    const opts = [['auto', '자동'], ['e6', '6월 예측'], ['e11', '11월 예측'], ['a11', '11월 실제']];
+    const opts = [['auto', '자동'], ['e11', '11월 예측'], ['a11', '11월 실제']];
     const segHtml = `<div class="sh-target"><span class="ig-field__label">예측 기준</span><div class="ig-seg" role="group" aria-label="예측 기준" id="tgt">${opts.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${S.target === v}">${l}</button>`).join('')}</div></div>`;
     const [lo, hi] = predRange(P);
 
