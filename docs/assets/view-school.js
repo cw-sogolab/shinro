@@ -267,6 +267,7 @@
             ${S.kind === '이과' ? `<div class="ig-field"><span class="ig-field__label">이과 과목 2개</span>${seg('fsci', [['phy', '물리'], ['chem', '화학'], ['bio', '생물']], v => S.sci.includes(v), '이과 과목')}</div>` : ''}
           </div>
           <div class="sh-ejuin">${subs.map(s => `<label class="ig-field"><span class="ig-field__label">${SH.SUBJ[s]} <span class="ig-muted">/${SH.MAXS[s]}</span></span><input class="ig-input" inputmode="numeric" data-s="${s}" value="${esc((S.rows[ses] || {})[s] ?? '')}"></label>`).join('')}</div>
+          ${SH.engInputsHtml()}
           ${hasMock() ? `<div class="sh-row" style="margin-top:12px"><span class="ig-field__label">비교할 점수</span>${seg('fmode', [['actual', '실제 EJU 점수'], ['pred', '모의고사 반영 예측']], v => v === mode, '비교 점수')}</div>` : ''}
         </div>
         <div class="sh-findin__sum" id="fsum"></div>
@@ -306,6 +307,7 @@
       if (store.get('findMode', null) !== 'actual') store.set('findMode', 'actual');   // 점수를 직접 넣으면 실제 점수로 비교
       clearTimeout(viewFind.t); viewFind.t = setTimeout(() => drawAll(), 120);
     });
+    SH.bindEngInputs(() => { clearTimeout(viewFind.te); viewFind.te = setTimeout(() => { drawRows(false); drawTracks(); }, 150); });   // 영어 점수를 바꾸면 영어 칸 판정만 다시 그린다
     let shown = 60;
     document.getElementById('fmore').onclick = () => { shown += 60; drawRows(false); };
     let rows = [];
