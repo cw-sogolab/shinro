@@ -12,6 +12,9 @@
       각 파일의 「종합점수(지망대학포함)」 시트 한 줄 = 학생 한 명 → 모의 N회 점수(일본어=독해+청독해, 기술, 종합, 물리·화학·생물, 수학=코스1(문과)/코스2(이과))와
       토플·토익·IELTS 를 한 번에 읽는다. 문/이과는 점수로 정한다(과학 점수가 있으면 이과). --src 를 같이 주면 그 파일의 6월 EJU·11월 실제 점수를 이름·캠퍼스로 붙인다.
 
+이전 students.js 에서 6월 EJU·11월 실제 점수만 가져오기: --prev 이전_students.js
+      (채점시트에는 6월 EJU 점수가 없으므로, 예전에 만든 파일의 e6·e11 만 이름·캠퍼스로 붙인다. 모의 1~4회 점수는 채점시트 것을 쓴다)
+
 영어 성적(선택, --src 로 만들 때): --eng 2026_1회.xlsx 2026_2회.xlsx … (전국모의고사 결과 엑셀)의 「학생정보_2026_N회」 시트에서
       이름으로 토플(iBT)·토익·IELTS 를 찾아 학생에 붙인다. 이름이 겹쳐 값이 서로 다르면 붙이지 않는다. 회차가 늦은 값이 앞선 값을 덮는다.
 
@@ -239,11 +242,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=None, help="점수예측 엑셀 (「11월예측_문과·이과」 시트). --mock 과 같이 주면 6월 EJU·11월 실제 점수만 붙인다")
     ap.add_argument("--mock", nargs="+", metavar="XLSX", help="전국모의고사 채점시트 (모의 1~4회 점수와 토플·토익·IELTS 가 같이 든 파일)")
+    ap.add_argument("--prev", metavar="JS", help="이전 students.js (6월 EJU·11월 실제 점수를 이름·캠퍼스로 가져옴)")
     ap.add_argument("--out", default=str(OUT), help="내보낼 파일 (기본 docs/assets/students.js)")
     ap.add_argument("--eng", nargs="+", metavar="XLSX", help="전국모의고사 결과 엑셀 (토플·토익·IELTS 가 든 「학생정보_2026_N회」 시트)")
     a = ap.parse_args()
     if not a.src and not a.mock:
         ap.error("--mock <채점시트.xlsx …> 또는 --src <점수예측.xlsx> 가 필요합니다")
+    if a.prev and not a.mock:
+        ap.error("--prev 는 --mock 과 같이 씁니다")
     lst = []
     if a.src:
         src = resolve(a.src)
@@ -270,6 +276,24 @@ def main():
             ml += list(old.values())
         lst = ml
         src = Path(a.mock[0])
+    if a.prev:
+        txt = resolve(a.prev).read_text(encoding="utf-8")
+        old = json.loads(txt[txt.index("{"):txt.rindex("}") + 1])["list"]
+        idx = {(s["n"], s["c"]): s for s in lst}
+        got = added = 0
+        for o in old:
+            cur = idx.get((o["n"], o["c"]))
+            if cur is None:   # 이전 파일에만 있는 학생은 그대로 둔다
+                lst.append(o)
+                added += 1
+                continue
+            for ex in ("e6", "e11"):
+                if ex in o["rows"] and ex not in cur["rows"]:
+                    cur["rows"][ex] = o["rows"][ex]
+                    got += 1
+            if "sci" not in cur and o.get("sci"):
+                cur["sci"] = o["sci"]
+        print(f"이전 파일에서 6월 EJU·11월 실제 점수 {got}건을 붙였고, 이전 파일에만 있던 학생 {added}명을 남겼습니다")
     # 같은 이름·캠퍼스·계열이 겹치면 번호를 붙여 구분
     lst.sort(key=lambda s: (s["k"], s["n"], s["c"]))
     seen = {}
