@@ -20,6 +20,7 @@
 """
 import argparse, os, unicodedata, datetime
 import numpy as np, pandas as pd
+import yoko_rule as yr   # 2027 모집요강이 인정하는 계열·과목 조합 (tools/yoko_rule.py)
 
 SCI = ['물리', '화학', '생물']
 MIN_EACH = 10
@@ -151,7 +152,12 @@ def fit_logit(x, y, w=None, off=None, lam=1.0):
 def build_units(train):
     units = []
     for (sch, fac), d in train.groupby(['학교n', '학부n']):
+        rule = yr.rule(sch, fac)   # 요강이 있는 학부는 요강 계열·조합만 (없으면 예전 방식)
         for kind, sets in SETS.items():
+            if rule:
+                if kind not in rule['kinds']:
+                    continue
+                sets = [x for x in sets if x in rule['sets'][kind]]
             cand = []
             for sset in sets:
                 for ses in ['최고', '6월', '11월']:
@@ -163,7 +169,7 @@ def build_units(train):
             # AUC가 같으면(소수 둘째 자리) 과목이 많은 쪽 → 최고 회차 우선
             cand.sort(key=lambda c: (-round(c[0], 2), -len(SET_PARTS[c[1]]), ['최고', '6월', '11월'].index(c[2])))
             A, sset, ses, n, n1 = cand[0]
-            units.append(dict(학교=sch, 학부=fac, 계열=kind, 과목=sset, 회차=ses, n=n, 합격=n1, AUC=A, a=0.0, b=0.0))
+            units.append(dict(학교=sch, 학부=fac, 계열=kind, 요강=bool(rule), 과목=sset, 회차=ses, n=n, 합격=n1, AUC=A, a=0.0, b=0.0))
     return pd.DataFrame(units)
 
 
@@ -286,7 +292,7 @@ def write_js(A, U, shift, bins, years):
     import json
     data = dict(version=A.version, built=datetime.date.today().isoformat(), years=[years[0], years[-1]], shift=shift, clean=CLEAN,
                 zones=[[lo, hi, n] for lo, hi, n in ZONES],
-                units=[dict(s=u['학교'], f=u['학부'], k=u['계열'], set=u['과목'], max=int(u['만점']), r=u['회차'], a=round(u.a, 6), b=round(u.b, 6), n=int(u.n), p=int(u['합격']),
+                units=[dict(s=u['학교'], f=u['학부'], k=u['계열'], set=u['과목'], max=int(u['만점']), r=u['회차'], a=round(u.a, 6), b=round(u.b, 6), n=int(u.n), p=int(u['합격']), yk=int(bool(u.get('요강', False))),
                             auc=round(u.AUC, 3), recent=int(u['최근2년']), bins=bins[i]) for i, u in U.iterrows()])
     os.makedirs(os.path.dirname(A.js), exist_ok=True)
     with open(A.js, 'w', encoding='utf-8') as f:

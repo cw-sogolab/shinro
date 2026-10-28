@@ -38,12 +38,14 @@
   function collect(scope, from, to, g1) {
     const out = [];
     for (let ui = 0; ui < R.units.length; ui++) {
-      const [u, f, d, g, st, n] = R.units[ui];
+      const [u, f, d, g, st, n, mask] = R.units[ui];
       if (u !== scope.u || (scope.f != null && f !== scope.f) || (scope.d != null && d !== scope.d) || (g1 != null && g !== g1)) continue;
       for (let k = st; k < st + n; k++) {
         const c = ROWS[k].split(','), y = 2000 + +c[0];
         if (y < from || y > to) continue;
         const v = c.map(x => x === '' ? null : +x);
+        // 2027 모집요강이 있는 학부(mask>0)는 요강이 인정하는 계열의 지원자만 (1 문과·2 이과·4 일본어만)
+        if (mask) { out.yk = true; const kc = v[22]; if (!kc || !(mask & (1 << (kc - 1)))) { out.skipped = (out.skipped || 0) + 1; continue; } }
         out.push({ ui, f, d, y, p: v[1] === 1, s6: v.slice(2, 11), s11: v.slice(11, 20), toefl: v[20], toeic: v[21] });
       }
     }
@@ -177,7 +179,8 @@
     function draw() {
       const rows = collect(scope, from, to, g1), G = aggregate(rows, ses), P = G.pass, F = G.fail;
       const body = document.getElementById('rbody');
-      if (!rows.length) { body.innerHTML = `<div class="ig-card ig-empty">${icon('school', '')}<b>이 조건의 지원자가 없어요</b><p>연도 범위나 구분을 바꿔 보세요.</p></div>`; return; }
+      const ykNote = rows.yk ? `<p class="ig-muted sh-yk"><span class="ig-badge ig-badge--success">2027 모집요강 기준</span> 요강이 인정하는 계열의 지원자만 집계${rows.skipped ? ` (다른 계열 ${rows.skipped}명 제외)` : ''}. 요강이 일본어만 보는 학부는 모든 계열 포함.</p>` : (R.yoko && R.yoko.includes(R.univ[u]) ? '<p class="ig-muted sh-yk">이 학부는 2027 요강과 맞는 항목을 못 찾아 전체 지원자를 집계합니다.</p>' : '<p class="ig-muted sh-yk"><span class="ig-badge">요강 미등록</span> 지원자 데이터 그대로 집계합니다.</p>');
+      if (!rows.length) { body.innerHTML = `<div class="ig-card ig-empty">${icon('school', '')}<b>이 조건의 지원자가 없어요</b><p>연도 범위나 구분을 바꿔 보세요.</p></div>` + ykNote; return; }
       const cell = (g, which) => { const rec = which === 'top' ? g.top : g.low; return rec ? rec.s : null; };
       const who = (g, which) => { const rec = which === 'top' ? g.top : g.low; if (!rec) return ''; const r = rec.r, [uu, ff, dd] = R.units[r.ui], dn = R.dept[dd];
         return `${r.y}년 ${rec.se} · ${esc(nameU(uu))} ${esc(nameF(ff))}${dn !== '(미기재)' && dn !== R.fac[ff] ? ' ' + esc(nameD(dd)) : ''}`; };
@@ -199,7 +202,7 @@
         kidsHtml = `<section><div class="ig-section-h"><h2>${kids.t}별 결과</h2><span class="ig-muted sh-sec-meta">${L.length}곳 · 누르면 그 ${kids.t}만 봅니다</span></div><div class="ig-card ig-card--flush"><div class="ig-table-wrap"><table class="ig-table ig-table--sticky"><thead><tr><th>${kids.t}</th><th class="num">합격 / 지원</th><th class="num">합격률</th><th class="num">합격자 총점 평균</th></tr></thead><tbody>${L.map(([k, e]) =>
           `<tr><td><a class="sh-schoollink" href="${kids.go(k)}"><b>${esc(kids.label(k))}</b> <span class="ig-jp ig-muted" lang="ja">${esc(kids.sub(k))}</span></a></td><td class="num"><b>${e.p}</b> / ${e.n}</td><td class="num">${Math.round(e.p / e.n * 100)}%</td><td class="num">${e.tn ? fmt(e.ts / e.tn) : '—'}</td></tr>`).join('')}</tbody></table></div></div></section>`;
       }
-      body.innerHTML = `
+      body.innerHTML = ykNote + `
         <div class="ig-grid ig-grid--4">
           <div class="ig-stat"><span class="ig-stat__label">합격 인원</span><span class="ig-stat__value">${P.cnt}<small>명</small></span><span class="ig-stat__foot">${from}~${to}</span></div>
           <div class="ig-stat"><span class="ig-stat__label">불합격 인원</span><span class="ig-stat__value">${F.cnt}<small>명</small></span><span class="ig-stat__foot">기록된 지원자 기준</span></div>
