@@ -165,7 +165,8 @@ def mock_students(paths):
             name = nfc(r[h["이름"]]).strip()
             camp = nfc(r[h["캠퍼스구분"]] or "").strip() if "캠퍼스구분" in h and h["캠퍼스구분"] < len(r) else ""
             seen[(name, camp)] = seen.get((name, camp), 0) + 1
-            key = (name, camp, seen[(name, camp)])
+            sid = r[h["이름"] - 1] if h["이름"] > 0 and isinstance(r[h["이름"] - 1], (int, float)) else None
+            key = (int(sid), name, camp) if sid else (name, camp, seen[(name, camp)])   # 학생번호가 있으면 번호로 구분 (동명이인·(경기) 같은 표시가 시트마다 다름)
             du, cd = g(r, "독해"), g(r, "청독해")
             sc = {"so": g(r, "종과") or g(r, "종합"), "ki": g(r, "기술"), "phy": g(r, "물리"), "chem": g(r, "화학"), "bio": g(r, "생물"), "c1": g(r, "코스1"), "c2": g(r, "코스2")}
             jp = (du or 0) + (cd or 0) if (du or cd) else None
@@ -177,7 +178,8 @@ def mock_students(paths):
                 if v is not None:
                     ent["en"][k] = v   # 회차 순서로 읽으므로 늦은 값이 덮음 (아래에서 정렬)
     out = []
-    for (name, camp, n), ent in by.items():
+    for key, ent in by.items():
+        sid, (name, camp) = (key[0], key[1:]) if isinstance(key[0], int) else (None, key[:2])
         rows, sci = {}, {"phy": 0, "chem": 0, "bio": 0}
         for ex, v in sorted(ent["rows"].items()):
             for s_ in sci:
@@ -198,6 +200,8 @@ def mock_students(paths):
         if not rows:
             continue
         st = {"n": name, "c": camp, "k": kind, "rows": rows}
+        if sid:
+            st["id"] = sid
         if kind == "이과":
             st["sci"] = top
         if ent["en"]:
@@ -231,6 +235,8 @@ def sheet(ws, kind):
         if not rows:
             continue
         st = {"n": nfc(r[0]).strip(), "c": nfc(r[1] or "").strip(), "k": kind, "rows": rows}
+        if len(r) > 2 and isinstance(r[2], (int, float)):
+            st["id"] = int(r[2])
         if kind == "이과":
             cnt = {s: sum(1 for g in rows.values() if s in g) for s in ("phy", "chem", "bio")}
             st["sci"] = [s for s, _ in sorted(cnt.items(), key=lambda x: -x[1])[:2]]
@@ -264,10 +270,12 @@ def main():
         ml = mock_students(a.mock)
         if lst:   # 점수예측 파일의 6월 EJU·11월 실제를 이름·캠퍼스로 붙인다 (없는 학생은 점수예측 쪽 기록을 그대로 둔다)
             old = {(s["n"], s["c"]): s for s in lst}
+            oid = {s["id"]: (s["n"], s["c"]) for s in lst if s.get("id")}
             hit = 0
             for s in ml:
-                o = old.pop((s["n"], s["c"]), None)
+                o = old.pop(oid.get(s.get("id")) or (s["n"], s["c"]), None)   # 학생번호가 맞으면 그 학생 (이름 표시가 달라도), 아니면 이름·캠퍼스
                 if o:
+                    s["n"], s["c"] = o["n"], o["c"]   # 점수예측 파일 쪽 이름 ((경기) 등 구분 표시 포함)
                     for ex in ("e6", "e11"):
                         if ex in o["rows"]:
                             s["rows"][ex] = o["rows"][ex]
@@ -311,6 +319,8 @@ def main():
                 s["en"] = e
                 hit += 1
         print(f"영어 성적: 시트에서 {len(em)}명 → 학생 {hit}명에게 붙임")
+    for s in lst:
+        s.pop("id", None)   # 학생번호는 파일에 담지 않는다 (이름·캠퍼스만)
     payload = {"built": date.today().isoformat(), "source": src.name if a.src or not a.mock else "전국모의고사 채점시트 %d개" % len(a.mock), "list": lst}
     Path(a.out).write_text("/* 자동 생성 — tools/students_export.py. 실제 학생 이름·성적: 이 컴퓨터 밖으로 내보내지 않는다 (.gitignore) */\n"
                    "window.STUDENTS = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
