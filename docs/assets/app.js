@@ -116,7 +116,7 @@
   function loadStudent(st, dest = 'pred') {
     S = { name: st.n, campus: st.c, kind: st.k, sci: st.sci && st.sci.length === 2 ? st.sci.slice() : ['phy', 'chem'], target: 'auto', src: 'xlsx', en: st.en ? { ...st.en } : {},
       rows: { m1: {}, m2: {}, e6: {}, m3: {}, m4: {}, e11: {}, ...JSON.parse(JSON.stringify(st.rows)) } };
-    switchPicks(S.name); save(); if (dest === 'pred') store.set('sqFocus', true); go(dest);
+    switchPicks(); save(); if (dest === 'pred') store.set('sqFocus', true); go(dest);
   }
   function bindStudentSearch(q = document.getElementById('sq'), box = document.getElementById('ssugg'), dest = 'pred') {
     let act = -1, hits = [];
@@ -143,8 +143,10 @@
   const unitByKey = k => C.units.find(u => ukey(u) === k);
   function save() { store.set('student', S); }
   /* 비교에 담은 학교·리포트에 넣을 학교는 학생별로 따로 기억한다: 다른 학생으로 바꾸면 비어 있고, 이전 학생을 다시 불러오면 그때 담은 것이 돌아온다 */
-  let picksName = S.name;
-  function switchPicks(name) {
+  const picksKey = () => `${S.name}|${S.campus || ''}`;   // 동명이인은 캠퍼스로 구분
+  let picksName = picksKey();
+  function switchPicks() {
+    const name = picksKey();
     if (name === picksName) return;
     const all = store.get('picksBy', {}); all[picksName] = { cmp, sel: store.get('rptSel', null) };
     const nx = all[name] || { cmp: [], sel: null }; picksName = name;
@@ -311,13 +313,13 @@
 
     bindEngInputs();
     document.getElementById('nm').oninput = e => { S.name = e.target.value; save(); document.getElementById('ptitle').textContent = S.name; };
-    document.getElementById('nm').onchange = () => { switchPicks(S.name); if (lastPred) drawRec(); };
+    document.getElementById('nm').onchange = () => { switchPicks(); if (lastPred) drawRec(); };
     if (STU) bindStudentSearch();
     app.querySelectorAll('#kind button').forEach(b => b.onclick = () => { S.kind = b.value; save(); viewPred(); });
     app.querySelectorAll('#sci button').forEach(b => b.onclick = () => {
       const s = b.value; if (S.sci.includes(s)) { b.setAttribute('aria-pressed', 'true'); return; } S.sci = [S.sci[1], s]; save(); viewPred();
     });
-    document.getElementById('reset').onclick = () => { S = JSON.parse(JSON.stringify(DEFAULT)); switchPicks(S.name); save(); viewPred(); IG.toast('예시 점수로 되돌렸습니다'); };
+    document.getElementById('reset').onclick = () => { S = JSON.parse(JSON.stringify(DEFAULT)); switchPicks(); save(); viewPred(); IG.toast('예시 점수로 되돌렸습니다'); };
     if (STU && store.get('sqFocus', false)) { store.set('sqFocus', false); const q = document.getElementById('sq'); if (q) q.focus(); }
     app.querySelectorAll('.sh-scores input').forEach(inp => inp.oninput = () => {
       const r = inp.dataset.r, s = inp.dataset.s; S.rows[r] = S.rows[r] || {};
