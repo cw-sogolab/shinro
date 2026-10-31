@@ -381,3 +381,16 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
   .ig-appbar__nav a[aria-current="page"]::after { display: none; }
   .sh-appsearch { margin-left: auto; flex: 0 1 260px; }
 }
+
+/* 상담 리포트: 리포트에 넣을 학교 고르기 */
+.sh-rsel { max-width: 794px; margin: 0 auto 12px; display: flex; flex-direction: column; gap: 8px; }
+.sh-rsel__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sh-rsel__head .ig-btn { margin-left: auto; }
+.sh-rsel__list { max-height: 240px; overflow: auto; border: 1px solid #e3e3df; border-radius: 6px; }
+.sh-rsel__row { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-bottom: 1px solid #efefec; cursor: pointer; }
+.sh-rsel__row .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sh-rsel__row b { font-variant-numeric: tabular-nums; }
+.sh-rpt-sel { width: 100%; border-collapse: collapse; }
+.sh-rpt-sel td, .sh-rpt-sel th { border-bottom: 1px solid #e3e3df; }
+.sh-rpt-sel .num { text-align: right; white-space: nowrap; }
+@media print { .sh-rsel { display: none !important; } }
