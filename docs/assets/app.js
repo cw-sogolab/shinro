@@ -623,8 +623,8 @@
     const sdOf = s => P.sd ? P.sd * (SUBJ_SD[s] || 10) / Math.sqrt(P.fullVar) : 0;
     const subRow = s => { const v = P.subj[s]; if (!v) return `<tr><td>${SUBJ[s]}</td><td class="num">—</td><td class="num">—</td></tr>`; const d = sdOf(s);
       return `<tr><td>${SUBJ[s]} <span class="sh-rpt-mute">/${MAXS[s]}</span></td><td class="num"><b>${Math.round(v.fin)}</b></td><td class="num">${d ? `${Math.max(0, Math.round(v.fin - d))}~${Math.min(REALMAX[s] || MAXS[s], Math.round(v.fin + d))}` : '실제'}</td></tr>`; };
-    const scnCol = x => `<div class="sh-rpt-blk"><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><div class="sh-rpt-zones">${ZONES.map(([z]) =>
-      `<div class="sh-rpt-zone"><div>${zoneChip(z)}</div><ul>${x.lists[z].slice(0, RPT_PER_ZONE).map(r => `<li><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b></li>`).join('') || '<li class="sh-rpt-mute">해당 학부 없음</li>'}</ul></div>`).join('')}</div></div>`;
+    const scnCol = (x, all) => `<div class="sh-rpt-blk"><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><div class="sh-rpt-zones">${ZONES.map(([z]) =>
+      `<div class="sh-rpt-zone"><div>${zoneChip(z)}</div><ul>${x.lists[z].slice(0, all ? 999 : RPT_PER_ZONE).map(r => `<li><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b></li>`).join('') || '<li class="sh-rpt-mute">해당 학부 없음</li>'}</ul></div>`).join('')}</div></div>`;
     let sel = store.get('rptSel', null);   // 리포트에 넣을 학교 (ukey 목록). null = 손대지 않음 → 기본 추천이 체크된 상태
     const cand = ZONES.flatMap(([z]) => mid.lists[z]).sort((x, y) => y.p - x.p);
     const defKeys = [...new Set(scens.flatMap(x => ZONES.flatMap(([z]) => x.lists[z].slice(0, RPT_PER_ZONE))).map(r => ukey(r.u)))];
@@ -642,9 +642,9 @@
     let picks = defPicks;
     const drawBody = () => {
       const selU = sel === null ? [] : sel.map(unitByKey).filter(u => u && kindUnits.includes(u)).sort((a, b) => (evalUnit(b, scens[Math.floor(scens.length / 2)].Q) || { p: 0 }).p - (evalUnit(a, scens[Math.floor(scens.length / 2)].Q) || { p: 0 }).p);
-      const chip = r => r.z ? zoneChip(r.z) : '<span class="ig-badge">15% 미만</span>';
+      const keep = new Set(sel === null ? [] : sel);
       const selSection = `<section><h2>2. 선택한 학교 ${selU.length}곳 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
-        <table class="sh-rpt-sel"><thead><tr><th>학교 · 학부</th>${scens.map(x => `<th class="num">${x.l} <span class="sh-rpt-mute">${Math.round(x.Q.total)}점</span></th>`).join('')}</tr></thead><tbody>${selU.map(u => `<tr><td>${school(u)}</td>${scens.map(x => { const r = evalUnit(u, x.Q); return r ? `<td class="num"><b>${pct(r.p)}</b> ${chip(r)}</td>` : '<td class="num">—</td>'; }).join('')}</tr>`).join('')}</tbody></table></section>`;
+        <div class="sh-rpt-scn">${scens.map(x => scnCol({ ...x, lists: Object.fromEntries(ZONES.map(([z]) => [z, x.lists[z].filter(r => keep.has(ukey(r.u)))])) }, true)).join('')}</div></section>`;
       picks = sel !== null ? selU.map(u => evalUnit(u, P)).filter(Boolean).slice(0, RPT_SEL_CURVES) : defPicks;
       document.getElementById('rbody').innerHTML = `<div class="ig-sheet-wrap"><article class="ig-sheet sh-rpt">
         <div class="ig-sheet__head"><div><h1>상담 리포트 · ${esc(S.name)}</h1><div class="sh-rpt-mute">${dateTxt} · ${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · ${TGT_LABEL[P.target].replace(' 점수', '')}</div></div><img class="ig-logo--light" src="../design/assets/ilgong-logo.png" alt="일공학원"></div>
