@@ -143,7 +143,7 @@
   const unitByKey = k => C.units.find(u => ukey(u) === k);
   function save() { store.set('student', S); }
   /* 비교에 담은 학교·리포트에 넣을 학교는 학생별로 따로 기억한다: 다른 학생으로 바꾸면 비어 있고, 이전 학생을 다시 불러오면 그때 담은 것이 돌아온다 */
-  const picksKey = () => `${S.name}|${S.campus || ''}`;   // 동명이인은 캠퍼스로 구분
+  const picksKey = () => `${S.name}|${S.campus || ''}|${S.kind}`;   // 동명이인은 캠퍼스·계열로 구분
   let picksName = picksKey();
   function switchPicks() {
     const name = picksKey();
