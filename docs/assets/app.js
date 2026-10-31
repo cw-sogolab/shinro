@@ -146,9 +146,9 @@
   let picksName = S.name;
   function switchPicks(name) {
     if (name === picksName) return;
-    const all = store.get('picksBy', {}); all[picksName] = { cmp, sel: store.get('rptSel', []) };
-    const nx = all[name] || { cmp: [], sel: [] }; picksName = name;
-    store.set('picksBy', all); store.set('rptSel', nx.sel || []); setCmp(nx.cmp || []);
+    const all = store.get('picksBy', {}); all[picksName] = { cmp, sel: store.get('rptSel', null) };
+    const nx = all[name] || { cmp: [], sel: null }; picksName = name;
+    store.set('picksBy', all); store.set('rptSel', nx.sel === undefined ? null : nx.sel); setCmp(nx.cmp || []);
   }
   function setCmp(v) { cmp = v.slice(0, 4); store.set('cmp', cmp); const c = document.getElementById('cmpCnt'); c.textContent = cmp.length; c.hidden = !cmp.length; }
 
@@ -625,34 +625,36 @@
       return `<tr><td>${SUBJ[s]} <span class="sh-rpt-mute">/${MAXS[s]}</span></td><td class="num"><b>${Math.round(v.fin)}</b></td><td class="num">${d ? `${Math.max(0, Math.round(v.fin - d))}~${Math.min(REALMAX[s] || MAXS[s], Math.round(v.fin + d))}` : '실제'}</td></tr>`; };
     const scnCol = x => `<div class="sh-rpt-blk"><div class="sh-rpt-sh"><b>${x.l}</b><span>${Math.round(x.Q.total)}점</span></div><div class="sh-rpt-zones">${ZONES.map(([z]) =>
       `<div class="sh-rpt-zone"><div>${zoneChip(z)}</div><ul>${x.lists[z].slice(0, RPT_PER_ZONE).map(r => `<li><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b></li>`).join('') || '<li class="sh-rpt-mute">해당 학부 없음</li>'}</ul></div>`).join('')}</div></div>`;
-    let sel = store.get('rptSel', []);   // 리포트에 넣을 학교로 체크한 것 (ukey)
+    let sel = store.get('rptSel', null);   // 리포트에 넣을 학교 (ukey 목록). null = 손대지 않음 → 기본 추천이 체크된 상태
     const cand = ZONES.flatMap(([z]) => mid.lists[z]).sort((x, y) => y.p - x.p);
+    const defKeys = [...new Set(scens.flatMap(x => ZONES.flatMap(([z]) => x.lists[z].slice(0, RPT_PER_ZONE))).map(r => ukey(r.u)))];
+    const cur = () => sel === null ? defKeys : sel;
     const trend = trendOpts(P, lo, hi, true);
     const dateTxt = `${TODAY.getFullYear()}년 ${md(ISO)}`;
     app.innerHTML = `
       <div class="ig-noprint sh-rpt-bar"><div><b>상담 리포트</b> <span class="ig-muted">A4 · 내용이 많으면 여러 쪽 · 인쇄 창에서 「대상: PDF로 저장」을 고르세요</span></div>
         <div class="sh-row"><a class="ig-btn" href="#pred">${icon('trend')}예측·추천으로</a><button type="button" class="ig-btn ig-btn--primary" id="rprint">${icon('file')}PDF로 저장</button></div></div>
-      <section class="ig-card ig-noprint sh-rsel"><div class="sh-rsel__head"><b>리포트에 넣을 학교 고르기</b><span class="ig-muted" id="rselcnt"></span><button type="button" class="ig-btn ig-btn--ghost" id="rselclr">전체 해제</button></div>
-        <p class="ig-muted">체크한 학교만 리포트의 추천 표와 합격 곡선에 나옵니다. 아무것도 체크하지 않으면 추천 상위 학교가 자동으로 들어갑니다.</p>
+      <section class="ig-card ig-noprint sh-rsel"><div class="sh-rsel__head"><b>리포트에 넣을 학교 고르기</b><span class="ig-muted" id="rselcnt"></span><button type="button" class="ig-btn ig-btn--ghost" id="rselreset">기본 추천으로</button><button type="button" class="ig-btn ig-btn--ghost" id="rselclr">전체 해제</button></div>
+        <p class="ig-muted">처음에는 추천 상위 학교가 모두 체크돼 있어요. 빼고 싶은 학교는 체크를 풀고, 넣고 싶은 학교는 체크하세요. 체크한 학교만 리포트의 추천 표와 합격 곡선에 나옵니다.</p>
         <label class="ig-field"><span class="ig-sr">학교 거르기</span><span class="ig-field__control">${icon('search', '')}<input class="ig-input" id="rselq" type="search" placeholder="학교·학부 이름으로 거르기" autocomplete="off"></span></label>
         <div class="sh-rsel__list" id="rsellist" tabindex="0" aria-label="리포트에 넣을 학교 목록"></div></section>
       <div id="rbody"></div>`;
     let picks = defPicks;
     const drawBody = () => {
-      const selU = sel.map(unitByKey).filter(u => u && kindUnits.includes(u));
+      const selU = sel === null ? [] : sel.map(unitByKey).filter(u => u && kindUnits.includes(u)).sort((a, b) => (evalUnit(b, scens[Math.floor(scens.length / 2)].Q) || { p: 0 }).p - (evalUnit(a, scens[Math.floor(scens.length / 2)].Q) || { p: 0 }).p);
       const chip = r => r.z ? zoneChip(r.z) : '<span class="ig-badge">15% 미만</span>';
       const selSection = `<section><h2>2. 선택한 학교 ${selU.length}곳 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
         <table class="sh-rpt-sel"><thead><tr><th>학교 · 학부</th>${scens.map(x => `<th class="num">${x.l} <span class="sh-rpt-mute">${Math.round(x.Q.total)}점</span></th>`).join('')}</tr></thead><tbody>${selU.map(u => `<tr><td>${school(u)}</td>${scens.map(x => { const r = evalUnit(u, x.Q); return r ? `<td class="num"><b>${pct(r.p)}</b> ${chip(r)}</td>` : '<td class="num">—</td>'; }).join('')}</tr>`).join('')}</tbody></table></section>`;
-      picks = selU.length ? selU.map(u => evalUnit(u, P)).filter(Boolean).slice(0, RPT_SEL_CURVES) : defPicks;
+      picks = sel !== null ? selU.map(u => evalUnit(u, P)).filter(Boolean).slice(0, RPT_SEL_CURVES) : defPicks;
       document.getElementById('rbody').innerHTML = `<div class="ig-sheet-wrap"><article class="ig-sheet sh-rpt">
         <div class="ig-sheet__head"><div><h1>상담 리포트 · ${esc(S.name)}</h1><div class="sh-rpt-mute">${dateTxt} · ${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · ${TGT_LABEL[P.target].replace(' 점수', '')}</div></div><img class="ig-logo--light" src="../design/assets/ilgong-logo.png" alt="일공학원"></div>
         <section><h2>1. 성적 추이와 다음 EJU 예측</h2>
           <div class="sh-rpt-two"><div class="ig-chart" id="rtrend"></div>
             <div><div class="sh-rpt-total"><span class="sh-rpt-mute">${isAct ? '11월 EJU 총점' : '예상 총점'} (기술 제외)</span><b>${Math.round(P.total)}</b><span>${isAct ? '점 · 실제' : `점 · 보통 ${lo}~${hi}`}</span></div>
               <table><thead><tr><th>과목</th><th class="num">${isAct ? '점수' : '예상'}</th><th class="num">${isAct ? '' : '보통 범위'}</th></tr></thead><tbody>${parts().map(subRow).join('')}</tbody></table></div></div></section>
-        ${selU.length ? selSection : `<section><h2>2. 추천 학교 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
+        ${sel !== null ? selSection : `<section><h2>2. 추천 학교 <span class="sh-rpt-mute">${P.sd ? '예측 점수의 하한·평균·상한마다 · ' : ''}합격 가능성 = 과거 비슷한 점수 지원자 중 합격한 비율</span></h2>
           <div class="sh-rpt-scn">${scens.map(scnCol).join('')}</div></section>`}
-        <section><h2>3. 합격 곡선 <span class="sh-rpt-mute">${selU.length ? '체크한 학교' : fromCmp.length ? '비교에 담은 학교' : '추천 학교 가운데 상담할 만한 곳'} · 점 = 실제 합격 비율 · 세로선 = 학생 예측</span></h2>
+        <section><h2>3. 합격 곡선 <span class="sh-rpt-mute">${sel !== null ? '체크한 학교' : fromCmp.length ? '비교에 담은 학교' : '추천 학교 가운데 상담할 만한 곳'} · 점 = 실제 합격 비율 · 세로선 = 학생 예측</span></h2>
           <div class="sh-rpt-curves">${picks.length ? picks.map((r, i) => `<div><div class="sh-rpt-ct">${school(r.u)}<span>${zoneChip(r.z)} <b>${pct(r.p)}</b></span></div><div class="ig-chart" id="rc${i}"></div></div>`).join('') : '<p class="sh-rpt-mute">곡선이 있는 추천 학교가 없습니다.</p>'}</div></section>
         <div class="ig-sheet__foot">참고용 · 합격을 보장하지 않음 · 최종 판단은 상담 강사와 함께 합니다. 예측 점수는 범위로 보며, 합격 가능성은 과거 비슷한 점수 지원자 중 합격한 비율입니다.${nref ? ` 점수만으로 잘 갈리지 않거나 자료가 적은 ${nref}개 학부는 이 표에서 뺐습니다.` : ''} 학원 내부 자료 · 외부 반출 금지.</div>
       </article></div>`;
@@ -664,16 +666,18 @@
           you: c.x != null ? { score: Math.round(c.x), lo: Math.max(c.lo, Math.round(c.x - c.sd)), hi: Math.min(c.hi, Math.round(c.x + c.sd)), p: pAt(u, c.x, c.sd) } : null,
           label: `${koName(u) || u.s + ' ' + u.f} 합격 가능성 곡선. 반반 점수 ${m ?? '만점 넘음'}` }); });
     };
+    const cnt = () => sel === null ? `${defKeys.length}곳 체크됨 · 기본 추천` : `${sel.length}곳 체크됨`;
     const drawList = () => {
       const q = (document.getElementById('rselq').value || '').trim();
-      const rows = cand.filter(r => !q || (r.u.s + r.u.f + (koName(r.u) || '')).includes(q)).sort((x, y) => (sel.includes(ukey(y.u)) - sel.includes(ukey(x.u)))).slice(0, 80);
-      document.getElementById('rsellist').innerHTML = rows.map(r => { const k = ukey(r.u); return `<label class="sh-rsel__row"><input type="checkbox" value="${esc(k)}"${sel.includes(k) ? ' checked' : ''}><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b>${zoneChip(r.z)}</label>`; }).join('') || '<p class="ig-muted">해당 학부 없음</p>';
-      document.getElementById('rselcnt').textContent = sel.length ? `${sel.length}곳 체크됨` : '체크한 학교 없음 · 자동 추천';
+      const rows = cand.filter(r => !q || (r.u.s + r.u.f + (koName(r.u) || '')).includes(q)).sort((x, y) => (cur().includes(ukey(y.u)) - cur().includes(ukey(x.u)))).slice(0, 80);
+      document.getElementById('rsellist').innerHTML = rows.map(r => { const k = ukey(r.u); return `<label class="sh-rsel__row"><input type="checkbox" value="${esc(k)}"${cur().includes(k) ? ' checked' : ''}><span class="nm">${esc(koName(r.u) || r.u.s + ' ' + r.u.f)}</span><b>${pct(r.p)}</b>${zoneChip(r.z)}</label>`; }).join('') || '<p class="ig-muted">해당 학부 없음</p>';
+      document.getElementById('rselcnt').textContent = cnt();
     };
-    const setSel = v => { sel = v; store.set('rptSel', sel); drawBody(); document.getElementById('rselcnt').textContent = sel.length ? `${sel.length}곳 체크됨` : '체크한 학교 없음 · 자동 추천'; };
-    document.getElementById('rsellist').onchange = e => { const k = e.target.value; setSel(e.target.checked ? sel.concat(k) : sel.filter(x => x !== k)); };
+    const setSel = v => { sel = v; store.set('rptSel', sel); drawBody(); document.getElementById('rselcnt').textContent = cnt(); };
+    document.getElementById('rsellist').onchange = e => { const k = e.target.value; setSel(e.target.checked ? cur().concat(k) : cur().filter(x => x !== k)); };
     document.getElementById('rselq').oninput = drawList;
     document.getElementById('rselclr').onclick = () => { setSel([]); drawList(); };
+    document.getElementById('rselreset').onclick = () => { sel = null; store.set('rptSel', null); drawBody(); drawList(); };
     drawList(); drawBody();
     document.getElementById('rprint').onclick = () => {
       const old = document.title; document.title = `상담리포트_${S.name}_${ISO}`;   // 크롬은 이 제목을 PDF 파일 이름으로 쓴다
