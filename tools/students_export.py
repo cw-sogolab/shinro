@@ -166,12 +166,14 @@ def mock_students(paths):
             camp = nfc(r[h["캠퍼스구분"]] or "").strip() if "캠퍼스구분" in h and h["캠퍼스구분"] < len(r) else ""
             seen[(name, camp)] = seen.get((name, camp), 0) + 1
             sid = r[h["이름"] - 1] if h["이름"] > 0 and isinstance(r[h["이름"] - 1], (int, float)) else None
-            key = (int(sid), name, camp) if sid else (name, camp, seen[(name, camp)])   # 학생번호가 있으면 번호로 구분 (동명이인·(경기) 같은 표시가 시트마다 다름)
+            key = int(sid) if sid else (name, camp, seen[(name, camp)])   # 학생번호가 있으면 번호만으로 구분 (이름 표시·캠퍼스 칸이 시트마다 다르거나 틀린 경우가 있다)
             du, cd = g(r, "독해"), g(r, "청독해")
             sc = {"so": g(r, "종과") or g(r, "종합"), "ki": g(r, "기술"), "phy": g(r, "물리"), "chem": g(r, "화학"), "bio": g(r, "생물"), "c1": g(r, "코스1"), "c2": g(r, "코스2")}
             jp = (du or 0) + (cd or 0) if (du or cd) else None
             tf, tx, il = (r[h["토플"]] if "토플" in h and h["토플"] < len(r) else None), g(r, "토익"), g(r, "IELTS")
-            ent = by.setdefault(key, {"rows": {}, "sc": [], "en": {}})
+            ent = by.setdefault(key, {"rows": {}, "sc": [], "en": {}, "names": [], "camps": []})
+            ent["names"].append(name)
+            ent["camps"].append(camp)
             ent["rows"][ex] = {"jp": jp, **sc}
             t, b = parse_toefl(tf)
             for k, v in (("t", t), ("b", b), ("x", round(tx) if tx and tx > 0 else None), ("i", il if il and il > 0 else None)):
@@ -179,7 +181,12 @@ def mock_students(paths):
                     ent["en"][k] = v   # 회차 순서로 읽으므로 늦은 값이 덮음 (아래에서 정렬)
     out = []
     for key, ent in by.items():
-        sid, (name, camp) = (key[0], key[1:]) if isinstance(key[0], int) else (None, key[:2])
+        if isinstance(key, int):
+            sid = key
+            name = max(dict.fromkeys(ent["names"]), key=ent["names"].count)    # 가장 많이 적힌 이름·캠퍼스 (같으면 먼저 나온 것)
+            camp = max(dict.fromkeys(ent["camps"]), key=ent["camps"].count)
+        else:
+            sid, (name, camp) = None, key[:2]
         rows, sci = {}, {"phy": 0, "chem": 0, "bio": 0}
         for ex, v in sorted(ent["rows"].items()):
             for s_ in sci:
