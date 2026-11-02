@@ -27,6 +27,23 @@
       hay: norm([doc.univ.ko, uniKo(doc), doc.univ.ja, ...(doc.univ.aliases || []), u.fac, u.fac_ja, u.dept, tr.name_ko].join(' ')) });
   })));
   const findUnit = key => UNITS.find(x => x.key === key);
+  /* 선발 방법: 전형 전체의 단계 가운데 이 학부에 해당하는 것만. 단계 이름 괄호에 학부가 있으면 그 학부만 「1단계(경영학부)」,
+   * 설명이 「○○학부를 제외한 …」이면 그 학부는 빼고, 이 학과가 면접 없음이면 면접 단계는 뺀다. 가려낸 결과가 없으면 전부 보여 준다. */
+  function stagesFor(tr, u) {
+    const facs = t => String(t || '').split(/[,·、/]|\s및\s/).map(x => x.replace(/학부$/, '').trim()).filter(Boolean);
+    const mine = String(u.fac || '').replace(/학부$/, '');
+    const noInterview = /(면접|선고)[^,.]{0,8}없음/.test(u.note || '');
+    const ok = s => {
+      const inParen = (s.stage || '').match(/\(([^)]+)\)/);
+      if (inParen && /학부/.test(inParen[1]) && !facs(inParen[1]).some(f => mine.includes(f) || f.includes(mine))) return false;
+      const ex = (s.detail || '').match(/^(.+?)(?:를|을) 제외한 (?:전 )?학부/);
+      if (ex && facs(ex[1]).some(f => mine.includes(f) || f.includes(mine))) return false;
+      if (noInterview && /면접/.test(s.method || '')) return false;
+      return true;
+    };
+    const shown = tr.selection.filter(ok);
+    return shown.length ? { shown, hidden: tr.selection.filter(x => !shown.includes(x)) } : { shown: tr.selection, hidden: [] };
+  }
   const applyOf = tr => tr.schedule.find(s => s.k === 'apply');
 
   /* 작은 마크다운: 문단·굵게·목록(들여쓰기 1단)·표 */
@@ -185,7 +202,8 @@
             <ul class="sh-lines2">${tr.eligibility.map(e => `<li>${kr(e.t) ? '<span class="ig-kr">한국 학생</span>' : ''}<span>${esc(e.t)}</span>${src(doc, e.p)}</li>`).join('')}</ul></section>
 
           <section class="ig-card"><div class="ig-card__head"><h3 class="ig-card__title">선발 방법</h3></div>
-            <ul class="sh-lines2">${tr.selection.map(s => `<li><span class="ig-badge">${esc(s.stage)}</span><span><b>${esc(s.method)}</b>${s.detail ? `<small class="sh-sub">${esc(s.detail)}</small>` : ''}</span>${src(doc, s.p)}</li>`).join('')}
+            <ul class="sh-lines2">${stagesFor(tr, u).shown.map(s => `<li><span class="ig-badge">${esc(s.stage)}</span><span><b>${esc(s.method)}</b>${s.detail ? `<small class="sh-sub">${esc(s.detail)}</small>` : ''}</span>${src(doc, s.p)}</li>`).join('')}
+              ${(h => h.length ? `<li class="ig-muted"><span>다른 학부용 단계는 숨겼어요: ${esc(h.map(x => x.stage).join(' · '))}</span></li>` : '')(stagesFor(tr, u).hidden)}
               ${u.note ? `<li><span class="ig-badge ig-badge--info">이 학과</span><span><b>${esc(u.note)}</b></span></li>` : ''}</ul>
             ${tr.scoring ? `<div class="ig-table-wrap" style="margin-top:12px"><table class="ig-table"><thead><tr>${tr.scoring.cols.map((c, i) => `<th class="${i ? 'num' : ''}">${esc(c)}</th>`).join('')}</tr></thead><tbody>${tr.scoring.rows.map(rw => `<tr>${rw.map((c, i) => `<td class="${i ? 'num' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}</section>
 
