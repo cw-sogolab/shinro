@@ -7,6 +7,7 @@
  *          ibt = 2026-01-20 이전 시험의 0~120 점수 기준, band = 2026-01-21 이후 새 1~6 밴드 기준.
  * by_fac : 학부(fac_ja)마다 기준이 다를 때. 없는 학부는 all.
  * note   : 화면에 작게 덧붙이는 말.
+ * 학과마다 기준이 다르면 이 파일 맨 아래 ENG_DEPT 에 적는다 (전형 키 → fac_ja → 학과 이름 일부 → 규칙). 학과 규칙이 by_fac 보다 먼저 쓰인다.
  * 요강이 바뀌면 이 파일을 고친다 (build_yoko 의 영어 칸 문장과 같은 내용이어야 함). */
 window.ENG_RULES = {
   'chuo-2027/law': { all: { accept: ['ibt', 'ielts', 'toeic'], min: { toeic: 480, ibt: 42, band: 3.0, ielts: 4.5 } } },
@@ -132,7 +133,7 @@ window.ENG_RULES = {
 'waseda-2027/gakubu': { all: { accept: ['ibt'] }, by_fac: {
     '政治経済学部': { accept: ['ibt', 'ielts'], note: '기준점 없음 — TOEFL iBT 또는 IELTS 제출 필수. 응시 2025-10-01~2026-05-31' },
     '法学部': { accept: ['ibt', 'ielts'], note: '기준점 없음 — TOEFL·IELTS·독일어·프랑스어 중 제출 필수. 응시 2025-10-01~2026-05-31' },
-    '教育学部': { accept: ['ibt', 'ielts'], note: '교육학·생애교육학전수만 해당(영어영문학과는 영어 불필요, JLPT N1). 기준점 없음' },
+    '教育学部': { accept: ['ibt', 'ielts'], note: '교육학·생애교육학전수·영어영문학과 모두 TOEFL iBT·IELTS 중 하나 제출(영어영문학과는 JLPT N1도 필수). 기준점 없음' },
     '商学部': { accept: ['ibt'], note: 'TOEFL iBT만 인정. 기준점 없음. 응시 2025-10-01~2026-05-31' },
     '社会科学部': { accept: ['ibt'], note: 'TOEFL iBT만 인정. 기준점 없음' },
     '文化構想学部': { accept: ['ibt'], note: 'TOEFL iBT만 인정. 기준점 없음' },
@@ -403,8 +404,8 @@ window.ENG_RULES = {
   /* aichi */
 // 아이치대학 (aichi) — 영어 외부시험 제출 요건은 없고, 국제커뮤니케이션학부(영어학과·국제교양학과)만 「입학 시 취득 見込み」 조건
   'aichi-2027/suisen': { all: { accept: [], note: '영어 외부시험 요건 없음 (현대중국학부만 모집)' } },
-  'aichi-2027/ippan': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '国際コミュニケーション学部': { accept: ['ibt', 'toeic'], min: { ibt: 48, toeic: 500 }, note: '영어학과만. 출원 서류에는 영어 성적 없음 — 입학 시 TOEFL iBT 48 / TOEIC L&R 500 / DET 85(판정 제외) 중 하나 취득 見込み. 2026-01-21 이후 iBT는 성적표 병기 구 점수(0~120)로 확인(밴드 기준 없음)' } } },
-  'aichi-2027/dojon': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '国際コミュニケーション学部': { accept: ['ibt', 'toeic'], min: { ibt: 48, toeic: 500 }, note: '국제교양학과. 출원 서류에는 영어 성적 없음 — 입학 시 TOEFL iBT 48 / TOEIC L&R 500 / DET 85(판정 제외) 중 하나 취득 見込み. 2026-01-21 이후 iBT는 성적표 병기 구 점수(0~120)로 확인(밴드 기준 없음)' } } },
+  'aichi-2027/ippan': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '国際コミュニケーション学部': { accept: ['ibt', 'toeic'], min: { ibt: 48, toeic: 500 }, note: '영어학과만. 출원 서류에는 영어 성적 없음 — 입학 시 TOEFL iBT 48 / TOEIC L&R 500 / DET 85(판정 제외) 중 하나 취득 見込み. 2026-01-21 이후 iBT는 성적표에 참고값으로 적힌 점수로 확인(밴드 기준 없음)' } } },
+  'aichi-2027/dojon': { all: { accept: [], note: '영어 외부시험 요건 없음' }, by_fac: { '国際コミュニケーション学部': { accept: ['ibt', 'toeic'], min: { ibt: 48, toeic: 500 }, note: '국제교양학과. 출원 서류에는 영어 성적 없음 — 입학 시 TOEFL iBT 48 / TOEIC L&R 500 / DET 85(판정 제외) 중 하나 취득 見込み. 2026-01-21 이후 iBT는 성적표에 참고값으로 적힌 점수로 확인(밴드 기준 없음)' } } },
   /* rissho */
 'rissho-2027/nov': { all: { accept: [], note: '영어 외부시험 요건 없음 (문학부 영어영미문학전공 코스만 대학 시행 영어 필기·구두시문)' } },
   'rissho-2027/feb': { all: { accept: [], note: '영어 외부시험 요건 없음' } },
@@ -694,7 +695,7 @@ window.ENG_RULES = {
     '工学部': { accept: ['ibt', 'toeic'], min: { toeic: 500, ibt: 38, band: 3.0 }, note: 'TOEIC 500 / iBT 2026-01-21 이후 밴드 3 이상, 이전 38(Reading 14·Listening 13 이상) / 영검 2급 이상(점수 판정 불가). 선고기일(2027-02-25) 기준 2년 이내' },
     '農学部': { accept: [], note: '영어 외부시험 불필요' } } },
   /* toyamaken */
-'toyamaken-2027/sogo': { all: { accept: ['ibt'], note: 'TOEFL iBT 응시 필수(출원 마감 전 2년 이내, ITP 불가), 기준점 없음 — 점수 제출만 필수. 면접에서 영어 능력도 시문' } },
+'toyamaken-2027/sogo': { all: { accept: ['ibt'], note: 'TOEFL 응시 필수(출원 마감 전 2년 이내, ITP 불가), 기준점 없음 — 점수 제출만 필수. 면접에서 영어 능력도 시문' } },
   /* toyohashi */
 'toyohashi-2027/gakusai': { all: { accept: ['ibt', 'ielts', 'toeic'], min: { toeic: 550, ibt: 42, ielts: 4.0 }, note: '출원 요건 · 2025-01 이후 응시 · TOEIC L&R 공개 테스트 · IELTS Academic(General Training 불가) · 2026-01-21 이후 iBT는 병기된 0~120 점수 참고값 기준(새 밴드 기준점 요강에 없음)' } },
   /* tsuda */
@@ -762,4 +763,288 @@ window.ENG_RULES = {
   /* keio_add */
 // 케이오 의학부 추가 전형 (keio) — TOEFL iBT 또는 IELTS Academic 필수, 기준점 없음
   'keio-2027/igaku': { all: { accept: ['ibt', 'ielts'], note: '기준점 없음 · 구·신 TOEFL 모두 제출 가능. 2024-09-01 ~ 2026-06-30 응시, Official Score 직송 필수 (TOEFL 기관코드 0773)' } }
+};
+
+/* 학과 단위 기준 (2027 요강 원문 대조). 전형 키 → fac_ja → 학과 이름 일부 → 규칙. judge:false 는 점수만으로 판정할 수 없는 경우(득점률 조건 등) — 「요강 확인」으로 표시 */
+window.ENG_DEPT = {
+  "aichi-2027/ippan": {
+    "国際コミュニケーション学部": {
+      "영어학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 48, "toeic": 500}, "note": "입학 시까지 취득이 예상되면 됨(출원 서류 항목 아님) · DET 85도 인정 · 2026-01-21 이후 iBT는 성적표의 참고값으로 확인 · 면접 일부 영어"},
+    },
+  },
+  "dokkyo-2027/global": {
+    "外国語学部": {
+      "독일어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 2.5, "ielts": 4.0}, "note": "TOEIC은 L&R+S&W 합계 790이라 판정 제외 · 영검 CSE1980·케임브리지 140도 가능 · 독일어 검정(독검 3급·Goethe A2·TestDaF TDN3 이상·ÖSD A2)으로 대체 가능"},
+      "프랑스어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 2.5, "ielts": 4.0}, "note": "TOEIC은 L&R+S&W 합계 790이라 판정 제외 · 영검 CSE1980·케임브리지 140도 가능 · 프랑스어 검정(불검 3급·DELF A2·TCF 250)으로 대체 가능"},
+      "영어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 58, "band": 3.5, "ielts": 4.5}, "note": "TOEIC은 L&R+S&W 합계 950이라 판정 제외 · 영검 CSE2150·케임브리지 150도 가능 · 영어를 주된 외국어로 6년 정도 학습 필요"},
+      "교류문화학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 58, "band": 3.5, "ielts": 4.5}, "note": "TOEIC은 L&R+S&W 합계 950이라 판정 제외 · 영검 CSE2150·케임브리지 150도 가능 · 영어를 주된 외국어로 6년 정도 학습 필요"},
+    },
+    "経済学部": {
+      "국제환경경제학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 57, "band": 3.0, "ielts": 4.5}, "note": "TOEIC은 L&R+S&W 합계 790이라 판정 제외 · 영검 CSE2000·케임브리지 147도 가능 · 구 점수 57은 원문 표기"},
+    },
+  },
+  "hokkaido-2027/shihi": {
+    "医学部": {
+      "의학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 79, "toeic": 750}, "note": "iBT는 Test Date 점수만(Home Edition 가능), 0-120 기준 · IELTS 불가"},
+      "보건학과": {"accept": ["ibt", "ielts", "toeic"], "note": "기준점 없음 — 성적 제출 필수 · 국제연합영검·케임브리지·영검 등도 가능"},
+    },
+  },
+  "jochi-2027/gaikokujin": {
+    "文学部": {
+      "영문학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 72, "band": 4, "ielts": 5.5}, "note": "TOEIC은 L&R785+S&W310이라 판정 제외 · 영검 준1급·UN영검 B급·TEAP 330(각 70)·GTEC 1180·케임브리지 162도 가능"},
+    },
+    "総合人間科学部": {
+      "심리학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능"},
+      "사회학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능"},
+    },
+    "経済学部": {
+      "경영학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 55, "band": 3.5, "ielts": 4.5}, "note": "TOEIC은 L&R650+S&W250이라 판정 제외 · 영검 2급A·UN영검 B급·TEAP 270(각 65)·GTEC 1050·케임브리지 147·독검 준1급·Goethe B1·ÖSD B1·불검 2급·DELF B1·TCF B1도 가능"},
+    },
+    "外国語学部": {
+      "영어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 72, "band": 4, "ielts": 5.5}, "note": "TOEIC은 L&R785+S&W310이라 판정 제외 · 영검 준1급·UN영검 B급·TEAP 330(각 70)·GTEC 1180·케임브리지 162·GCE A레벨 2과목도 가능"},
+      "독일어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능 · 독검 준1급·Goethe B1·ÖSD B1도 가능"},
+      "프랑스어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능 · 불검 2급·DELF B1·TCF B1도 가능"},
+      "이스파니아어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능"},
+      "러시아어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능"},
+      "포르투갈어학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 42, "band": 3, "ielts": 4.0}, "note": "TOEIC은 L&R550+S&W240이라 판정 제외 · 영검 2급·UN영검 C급·TEAP 220(각 50)·GTEC 930·케임브리지 142도 가능"},
+    },
+  },
+  "kagoshima-2027/hobun_ri_ko": {
+    "法文学部": {
+      "법경사회학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 36, "toeic": 360}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+      "다원지역문화코스": {"accept": ["ibt", "toeic"], "min": {"ibt": 36, "toeic": 360}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+      "심리학코스": {"accept": ["ibt", "toeic"], "min": {"ibt": 36, "toeic": 420}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+    },
+  },
+  "kagoshima-2027/kyoiku_igaku_ta": {
+    "医学部": {
+      "의학과": {"accept": ["ibt"], "min": {"ibt": 90}, "note": "TOEIC 불가 · 0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+      "보건학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 42, "toeic": 550}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+    },
+    "共同獣医学部": {
+      "공동수의학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 61, "toeic": 600}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+      "축산학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 36, "toeic": 420}, "note": "0-120 점수 기준(밴드 기준 없음) · MyBest 불가 · 2025·2026년 응시분"},
+    },
+  },
+  "kanagawa-2027/gairyu": {
+    "国際日本学部": {
+      "국제문화교류학과": {"accept": ["ibt"], "min": {"ibt": 32}, "note": "1년 이내 응시 · 영어 모어 화자는 원칙적으로 제외"},
+    },
+  },
+  "kanazawa-2027/shihi_iyaku": {
+    "医薬保健学域": {
+      "의학류": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능"},
+      "약학류": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능 · 점수는 참고"},
+      "의약과학류": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능 · 점수는 참고"},
+      "간호학전공": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능"},
+      "진료방사선기술학전공": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능"},
+      "의료검사기술학전공": {"accept": ["ibt"], "note": "득점률 60% 초과가 출원 조건(만점 명시 없어 판정 기준점 없음) · Home Edition 가능", "judge": false},
+      "이학요법학전공": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능"},
+      "작업요법학전공": {"accept": ["ibt"], "note": "기준점 없음 · Home Edition 가능"},
+    },
+  },
+  "kanazawa-2027/shihi_yugo_ningen_riko": {
+    "人間社会学域": {
+      "인문학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · 케임브리지 영검(링가스킬 포함)도 가능"},
+      "법학류": {"accept": ["ibt"], "note": "TOEFL iBT만 · 득점률 60% 초과가 출원 조건(만점 명시 없어 판정 기준점 없음)", "judge": false},
+      "경제학류": {"accept": ["ibt"], "note": "TOEFL iBT만 · 득점률 60% 초과가 출원 조건(만점 명시 없어 판정 기준점 없음)", "judge": false},
+      "학교교육학류": {"accept": ["ibt"], "note": "TOEFL iBT만 · 기준점 없음"},
+      "지역창조학류": {"accept": ["ibt"], "note": "TOEFL iBT만 · 기준점 없음"},
+      "국제학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · 케임브리지 영검(링가스킬 포함)도 가능"},
+    },
+    "理工学域": {
+      "수물과학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · Home Edition 가능"},
+      "물질화학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · Home Edition 가능"},
+      "기계공학류": {"accept": ["ibt", "ielts"], "note": "TOEFL은 iBT 득점률 50% 초과가 조건(만점 명시 없어 TOEFL 판정 불가, 요강 확인)", "min": {"ielts": 5.5}, "judge": false},
+      "프런티어공학류": {"accept": ["ibt", "ielts"], "note": "TOEFL은 iBT 득점률 50% 이상이 조건(만점 명시 없어 TOEFL 판정 불가, 요강 확인)", "min": {"ielts": 5.0}, "judge": false},
+      "전자정보통신학류": {"accept": ["ibt", "ielts"], "note": "IELTS는 4.5 「초과」 · TOEFL은 iBT 득점률 50% 초과가 조건(만점 명시 없어 TOEFL 판정 불가, 요강 확인)", "min": {"ielts": 4.5}, "judge": false},
+      "지구사회기반학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · Home Edition 가능"},
+      "생명이공학류": {"accept": ["ibt", "ielts"], "note": "기준점 없음 · Home Edition 가능"},
+    },
+  },
+  "kyotogaigo-2027/kokugai": {
+    "国際貢献学部": {
+      "글로벌스터디즈학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 62, "band": 4.0, "ielts": 5.0, "toeic": 710}, "note": "영어 교수 언어 3년 이상 과정 수료(Certificate 제출)로도 충족 · 영검 CSE 2150·GTEC 1099·TEAP 282·케임브리지 156·TOEIC Bridge 99·TOEIC L&R+S&W 1430·DET 95도 가능 · 2024-04 이후 · iBT는 Test Date만"},
+    },
+  },
+  "kyotogaigo-2027/kokunai": {
+    "国際貢献学部": {
+      "글로벌스터디즈학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 62, "band": 4.0, "ielts": 5.0, "toeic": 710}, "note": "영어 교수 언어 3년 이상 과정 수료(Certificate 제출)로도 충족 · 영검 CSE 2150·GTEC 1099·TEAP 282·케임브리지 156·TOEIC Bridge 99·TOEIC L&R+S&W 1430·DET 95도 가능 · 2024-04 이후 · iBT는 Test Date만"},
+    },
+  },
+  "musashino-2027/ki1": {
+    "グローバル学部": {
+      "글로벌비즈니스학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 61, "ielts": 5.5, "toeic": 700}, "note": "Home Edition·My Best·IELTS One Skill Retake 불가 · 영어 모어 화자 등은 면제될 수 있음(입시센터 문의)"},
+      "글로벌커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+      "일본어커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+    },
+  },
+  "musashino-2027/ki2": {
+    "グローバル学部": {
+      "글로벌비즈니스학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 61, "ielts": 5.5, "toeic": 700}, "note": "Home Edition·My Best·IELTS One Skill Retake 불가 · 영어 모어 화자 등은 면제될 수 있음(입시센터 문의)"},
+      "글로벌커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+      "일본어커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+    },
+  },
+  "musashino-2027/ki3": {
+    "グローバル学部": {
+      "글로벌비즈니스학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 61, "ielts": 5.5, "toeic": 700}, "note": "Home Edition·My Best·IELTS One Skill Retake 불가 · 영어 모어 화자 등은 면제될 수 있음(입시센터 문의)"},
+      "글로벌커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+      "일본어커뮤니케이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "필수 아님 — 엔트리시트에 점수를 적는 경우에만 증명서 사본 제출"},
+    },
+  },
+  "nagasaki-2027/late": {
+    "教育学部": {
+      "소학교교육코스": {"accept": ["ibt", "toeic"], "min": {"ibt": 41, "band": 2.5, "toeic": 400}, "note": "과거 2년 이내 응시 · Home Edition 제외 · Test Date 점수만"},
+      "유아교육코스": {"accept": ["ibt", "toeic"], "min": {"ibt": 41, "band": 2.5, "toeic": 400}, "note": "과거 2년 이내 응시 · Home Edition 제외 · Test Date 점수만"},
+      "특별지원교육코스": {"accept": ["ibt", "toeic"], "min": {"ibt": 41, "band": 2.5, "toeic": 400}, "note": "과거 2년 이내 응시 · Home Edition 제외 · Test Date 점수만"},
+      "중학교교육코스 문계": {"accept": ["ibt", "toeic"], "min": {"ibt": 41, "band": 2.5, "toeic": 400}, "note": "희망 교과 「사회」 기준 · 「영어」 선택자는 기준점 없이 응시만 · 과거 2년 이내 응시 · Home Edition 제외 · Test Date 점수만", "judge": false},
+    },
+  },
+  "nagoya-2027/shihi": {
+    "医学部": {
+      "의학과": {"accept": ["ibt"], "min": {"ibt": 90}, "note": "IELTS는 이 학과 기준 칸 「―」 · 2025-02-01 이후 응시 · 구 스케일(0-120) 채용, 밴드 기준 없음 · Home Edition 가능"},
+      "보건학과": {"accept": ["ibt"], "min": {"ibt": 61}, "note": "IELTS는 이 학과 기준 칸 「―」 · 2025-02-01 이후 응시 · 구 스케일(0-120) 채용, 밴드 기준 없음 · Home Edition 가능"},
+    },
+  },
+  "nanzan-2027/eju": {
+    "外国語学部": {
+      "영미학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 72, "band": 4, "ielts": 5.5}, "note": "iBT는 각 기능 15 이상(2026-01-21 이후 3.5 이상)도 한 번에 충족 · Home Edition·IELTS Online 불가 · 2024-08 이후 응시"},
+      "스페인": {"accept": ["ibt", "ielts"], "min": {"ibt": 61, "band": 3.5, "ielts": 5.0}, "note": "iBT는 각 기능 12 이상(2026-01-21 이후 3.5 이상)도 한 번에 충족 · Home Edition·IELTS Online 불가 · 2024-08 이후 응시"},
+      "프랑스학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 61, "band": 3.5, "ielts": 5.0}, "note": "iBT는 각 기능 12 이상(2026-01-21 이후 3.5 이상)도 한 번에 충족 · Home Edition·IELTS Online 불가 · 2024-08 이후 응시"},
+      "독일학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 61, "band": 3.5, "ielts": 5.0}, "note": "iBT는 각 기능 12 이상(2026-01-21 이후 3.5 이상)도 한 번에 충족 · Home Edition·IELTS Online 불가 · 2024-08 이후 응시"},
+      "아시아학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 61, "band": 3.5, "ielts": 5.0}, "note": "iBT는 각 기능 12 이상(2026-01-21 이후 3.5 이상)도 한 번에 충족 · Home Edition·IELTS Online 불가 · 2024-08 이후 응시"},
+    },
+  },
+  "nihonjoshi-2027/gaikokujin": {
+    "文学部": {
+      "일본어일본문학과": {"accept": ["ibt", "toeic"], "note": "TOEFL iBT 또는 TOEIC 점수 보유 필수, 기준점 없음(TOEIC은 L&R·S&W 모두 해당). 출원 마감일부터 2년 이내"},
+      "영문학과": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 60, "band": 3.5, "ielts": 5.0, "toeic": 600}, "note": "출원 자격. Home Edition·IELTS Online 불가. 출원 마감일부터 2년 이내"},
+      "역사문화학과": {"accept": ["ibt", "toeic"], "note": "TOEFL iBT 또는 TOEIC 점수 보유 필수, 기준점 없음(TOEIC은 L&R·S&W 모두 해당). 출원 마감일부터 2년 이내"},
+    },
+  },
+  "obirin-2027/hennyu1": {
+    "グローバル・コミュニケーション学群": {
+      "영어 트랙": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 65, "ielts": 5.5, "toeic": 650}, "note": "영어 트랙 편입 기준. HKDSE English Level4도 인정(판정 불가). 2026-01-21 이후 TOEFL은 성적표에 병기된 구 점수(0~120)로 판정. 출원 첫날부터 2년 이내"},
+    },
+  },
+  "obirin-2027/hennyu2": {
+    "グローバル・コミュニケーション学群": {
+      "영어 트랙": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 65, "ielts": 5.5, "toeic": 650}, "note": "영어 트랙 편입 기준. HKDSE English Level4도 인정(판정 불가). 2026-01-21 이후 TOEFL은 성적표에 병기된 구 점수(0~120)로 판정. 출원 첫날부터 2년 이내"},
+    },
+  },
+  "obirin-2027/kokusai1": {
+    "グローバル・コミュニケーション学群": {
+      "E방식": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 61, "ielts": 5.5, "toeic": 600}, "note": "E방식 일반 기준(J방식은 일본어 자격). 장학생 선발은 iBT 67·IELTS 6.0·TOEIC L&R 710. HKDSE English Level3(장학생 Level4)도 인정(판정 불가). 2026-01-21 이후 TOEFL은 성적표에 병기된 구 점수(0~120)로 판정. 출원 첫날부터 2년 이내"},
+    },
+  },
+  "obirin-2027/kokusai2": {
+    "グローバル・コミュニケーション学群": {
+      "E방식": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 61, "ielts": 5.5, "toeic": 600}, "note": "E방식 일반 기준(J방식은 일본어 자격). 장학생 선발은 iBT 67·IELTS 6.0·TOEIC L&R 710. HKDSE English Level3(장학생 Level4)도 인정(판정 불가). 2026-01-21 이후 TOEFL은 성적표에 병기된 구 점수(0~120)로 판정. 출원 첫날부터 2년 이내"},
+    },
+  },
+  "ochanomizu-2027/tokubetsu": {
+    "理学部": {
+      "물리학과": {"accept": ["ibt"], "note": "물리학과만 TOEFL iBT 필수, 기준점 없음. 시험 첫날부터 2년 이내 응시분, ITP 불가"},
+    },
+    "生活科学部": {
+      "식물영양학과": {"accept": ["ibt"], "note": "식물영양학과만 TOEFL iBT 필수, 기준점 없음. 시험 첫날부터 2년 이내 응시분, ITP 불가"},
+    },
+  },
+  "osaka-2027/shihi": {
+    "医学部": {
+      "의학과": {"accept": ["ibt"], "note": "TOEFL iBT 제출 필수, 출원 기준점 없음. 2025-01-04 이후 응시분, Test Date 점수만"},
+    },
+  },
+  "osakakoritsu-2027/early": {
+    "現代システム科学域": {
+      "지식정보시스템학류": {"accept": ["ibt"], "min": {"ibt": 45, "band": 3}, "note": "TOEFL iBT만. 출원 요건."},
+      "환경사회시스템학류": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "TOEFL iBT만. 출원 요건."},
+      "교육복지학류": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "TOEFL iBT만. 출원 요건."},
+      "심리학류": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "TOEFL iBT만. 출원 요건."},
+    },
+  },
+  "osakakoritsu-2027/main": {
+    "農学部": {
+      "응용생물과학과": {"accept": ["ibt"], "min": {"ibt": 71, "band": 4}, "note": "TOEFL iBT만. 출원 요건. 합·부 판정"},
+      "생명기능화학과": {"accept": ["ibt"], "note": "TOEFL iBT 제출 필수, 출원에 필요한 성적 요건 없음"},
+      "녹지환경과학과": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "TOEFL iBT만. 출원 요건. 합·부 판정"},
+    },
+  },
+  "ritsumeikan-2027/koki": {
+    "経済学部": {
+      "국제전공": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 58, "band": 3.5, "ielts": 4.5, "toeic": 550}, "note": "국제전공만 해당(경제전공은 영어 요건 없음). 영검 2급·GTEC 960·TEAP 250·Duolingo 90도 인정(판정 불가). 출원 마감일부터 2년 이내(영검은 시기 무관)"},
+    },
+  },
+  "ritsumeikan-2027/zenki": {
+    "経済学部": {
+      "국제전공": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 58, "band": 3.5, "ielts": 4.5, "toeic": 550}, "note": "국제전공만 해당(경제전공은 영어 요건 없음). 영검 2급·GTEC 960·TEAP 250·Duolingo 90도 인정(판정 불가). 출원 마감일부터 2년 이내(영검은 시기 무관)"},
+    },
+  },
+  "ryukoku-2027/zenki": {
+    "国際学部": {
+      "グローバルスタディーズ学科": {"accept": ["ibt", "ielts", "toeic"], "min": {"ibt": 55, "ielts": 5.0, "toeic": 600}, "note": "출원 자격. 영검 2급·GTEC 920·유엔영검 B급도 인정(판정 불가). 2024-04-01 이후 응시분, Test Date 점수만, 증명 자료 사본 불가"},
+    },
+  },
+  "seikei-2027/gaikokujin": {
+    "文学部": {
+      "영어영미문학과": {"accept": ["ibt", "ielts"], "min": {"ibt": 72, "band": 4.0, "ielts": 5.5}, "note": "출원 요건. 영검 2300·케임브리지 160·GTEC 1180·TEAP 309도 인정(판정 불가), TOEIC은 L&R+S&W 합산 1095라 판정 제외. 출원 개시일 시점 유효 기간 안의 점수만"},
+    },
+  },
+  "senshu-2027/abroad": {
+    "文学部": {
+      "영어영미문학과": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "영어영미문학과만 필수. Home Edition 불가. 출원 개시일부터 2년 이내"},
+    },
+  },
+  "senshu-2027/domestic": {
+    "文学部": {
+      "영어영미문학과": {"accept": ["ibt"], "min": {"ibt": 61, "band": 3.5}, "note": "영어영미문학과만 필수. Home Edition 불가. 출원 개시일부터 2년 이내"},
+    },
+  },
+  "showajoshi-2027/ippan": {
+    "国際学部": {
+      "국제학과": {"accept": ["ibt", "ielts"], "note": "출원 요건 아님(선택 제출). 내면 적성테스트(영어) 면제·환산: iBT 53/61/79, IELTS 5.0/5.5/6.0 이상 = 80/90/100점. 2026-01 이후 새 TOEFL 기준은 본학 HP 확인. 영검 CSE·GTEC·TEAP도 인정(판정 불가)"},
+      "국제일본학과": {"accept": ["ibt", "ielts"], "note": "출원 요건 아님(선택 제출). 내면 적성테스트(영어) 면제·환산: iBT 53/61/79, IELTS 5.0/5.5/6.0 이상 = 80/90/100점. 2026-01 이후 새 TOEFL 기준은 본학 HP 확인. 영검 CSE·GTEC·TEAP도 인정(판정 불가)"},
+    },
+  },
+  "soka-2027/dojon": {
+    "理工学部": {
+      "グリーンテクノロジー学科": {"accept": ["ibt", "ielts"], "min": {"ibt": 61, "band": 3.5, "ielts": 5.5}, "note": "일본어 B2(JLPT N2 등) 증명이 없을 때만 필요(이때 N5 이상 증명도 함께). Duolingo 95도 인정(판정 불가). 출원 마감일부터 2년 이내", "judge": false},
+    },
+  },
+  "takushoku-2027/b1": {
+    "外国語学部": {
+      "영미어학과": {"accept": ["toeic"], "min": {"toeic": 450}, "note": "영미어학과만 TOEIC L&R 450 이상 필요"},
+    },
+  },
+  "takushoku-2027/b2": {
+    "外国語学部": {
+      "영미어학과": {"accept": ["toeic"], "min": {"toeic": 450}, "note": "영미어학과만 TOEIC L&R 450 이상 필요"},
+    },
+  },
+  "tmu-2027/tokubetsu_a": {
+    "都市環境学部": {
+      "도시기반환경학과": {"accept": ["ibt"], "note": "TOEFL iBT만. 기준점 없음. 2025-04-01 이후 응시분, MyBest 스코어·IELTS One Skill Retake 불가"},
+      "건축학과": {"accept": ["ibt", "ielts"], "note": "TOEFL iBT 또는 IELTS 아카데믹. 기준점 없음. 2025-04-01 이후 응시분, MyBest 스코어·IELTS One Skill Retake 불가"},
+      "환경응용화학과": {"accept": ["ibt", "ielts"], "note": "TOEFL iBT 또는 IELTS 아카데믹. 기준점 없음. 2025-04-01 이후 응시분, MyBest 스코어·IELTS One Skill Retake 불가"},
+      "도시정책과학과": {"accept": ["ibt", "ielts"], "note": "TOEFL iBT 또는 IELTS 아카데믹. 기준점 없음. 2025-04-01 이후 응시분, MyBest 스코어·IELTS One Skill Retake 불가"},
+    },
+  },
+  "tokushima-2027/kokunai": {
+    "医学部": {
+      "医学科": {"accept": ["ibt"], "min": {"ibt": 80, "band": 4.5}, "note": "TOEFL iBT만. 2025-01 이후 응시분"},
+      "看護学専攻": {"accept": ["ibt"], "note": "TOEFL iBT 필수, 성적 지정 없음. 2025-01 이후 응시분"},
+    },
+  },
+  "tottori-2027/shihi": {
+    "医学部": {
+      "생명과학과": {"accept": ["ibt", "toeic"], "min": {"ibt": 38, "band": 3, "toeic": 500}, "note": "구 iBT는 38점에 더해 Reading 14·Listening 13 이상. 영검 2급도 인정(판정 불가). 선고기일(2027-02-25)부터 2년 이내"},
+    },
+  },
+  "toyo-2027/honko": {
+    "国際学部": {
+      "글로벌·이노베이션학과": {"accept": ["ibt", "ielts", "toeic"], "note": "영어면접형 필수 제출, 기준점 없음. 영검·TEAP·GTEC도 인정(판정 불가). 10월 시험 2024-11 이후, 12월 시험 2025-01 이후 응시분. TOEFL Home Edition 인정"},
+      "영어면접형": {"accept": ["ibt", "ielts", "toeic"], "note": "영어면접형 필수 제출, 기준점 없음. 영검·TEAP·GTEC도 인정(판정 불가). 10월 시험 2024-11 이후, 12월 시험 2025-01 이후 응시분. TOEFL Home Edition 인정"},
+    },
+  },
 };
