@@ -21,3 +21,9 @@ docs/assets/scoring.js
 .secret/
 CLAUDE.md
 계산방법_원장님설명.md
+
+# 입시 데이터 마트 (합격 데이터, 저장소 밖에 둔다)
+admissions_mart*
+admissions_rules*
+원장님_검토_*.xlsx
+data/mart/
