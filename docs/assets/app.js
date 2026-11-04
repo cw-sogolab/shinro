@@ -81,11 +81,18 @@
     ['en-t', 'en-x', 'en-i'].forEach(id => { const el = document.getElementById(id); if (el) el.oninput = setEn; });
   }
   /* 모집요강 한 전형·학부의 영어 요건을 학생 점수와 비교. st: ok 충족 · ng 미달 · no 점수 없음 · none 불필요 · check 요강 확인 */
+  /* 이 모집 단위에 적용할 규칙: 학과 규칙(ENG_DEPT, 학과 이름 일부로 찾음. 긴 이름 우선) → 학부 규칙(by_fac) → 전체(all) */
+  function engRule(doc, tr, un) {
+    const key = `${doc.id}/${tr.id}`, D = (window.ENG_DEPT || {})[key], d = D && D[un.fac_ja];
+    if (d) { const k = Object.keys(d).sort((a, b) => b.length - a.length).find(x => String(un.dept || '').includes(x)); if (k) return d[k]; }
+    const R = ENG[key]; return R && ((R.by_fac && R.by_fac[un.fac_ja]) || R.all);
+  }
   function engJudge(doc, tr, un, en) {
     en = en || (S && S.en) || {};
     if (un.en === 'N') return { st: 'none', t: '불필요', why: '' };
-    const R = ENG[`${doc.id}/${tr.id}`], r = R && ((R.by_fac && R.by_fac[un.fac_ja]) || R.all);
+    const r = engRule(doc, tr, un);
     if (un.en === 'U' || !r) return { st: 'check', t: '요강 확인', why: '' };
+    if (r.judge === false) return { st: 'check', t: '요강 확인', why: '점수만으로 판정 불가', note: r.note };
     const have = { ibt: en.t != null || en.b != null, ielts: en.i != null, toeic: en.x != null };
     const mine = r.accept.filter(k => have[k]), th = r.min || null, NAME = { ibt: 'TOEFL', ielts: 'IELTS', toeic: 'TOEIC' };
     const tf = th && (th.band != null ? `TOEFL 밴드 ${th.band}${th.ibt != null ? ` (구 ${th.ibt}점)` : ''}` : th.ibt != null ? `TOEFL ${th.ibt}점` : '');

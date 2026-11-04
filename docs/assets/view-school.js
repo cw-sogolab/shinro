@@ -133,8 +133,28 @@
   const curveOf = (u, f, kind) => C.units.find(c => c.s === u && c.f === f && c.k === kind) || null;
 
   /* 학교 찾기 표의 「영어 성적」 칸: 모집요강(정리된 것)에서 이 학부가 요구하는 영어 시험 */
+  /* 같은 학부 안에서 학과마다 영어 요건이 다르면 학과별로 묶어 보여 준다 (학부 표에 첫 학과 기준만 나오지 않게) */
+  function enDepts(y) {
+    const groups = new Map();
+    y.tr.units.filter(x => x.fac_ja === y.unit.fac_ja).forEach(x => {
+      const j = SH.engJudge(y.doc, y.tr, x), sig = [x.en, j.req || '', j.st, j.why || ''].join('|');
+      if (!groups.has(sig)) groups.set(sig, { un: x, j, depts: [] });
+      groups.get(sig).depts.push(x.dept || '');
+    });
+    return groups.size > 1 ? [...groups.values()] : null;
+  }
   function enCell(y) {
     if (!y) return '<span class="ig-muted" style="font-size:12px">요강 미등록</span>';
+    const G = enDepts(y);
+    if (G) {
+      const tally = {}; G.forEach(g => { const t = g.un.en === 'N' ? '불필요' : g.un.en === 'U' ? '언급 없음' : g.j.t; tally[t] = (tally[t] || 0) + g.depts.length; });
+      return `<details class="sh-en sh-en--depts"><summary><span class="ig-badge">학과별 다름</span> <small>${Object.entries(tally).map(([t, n]) => `${esc(t)} ${n}`).join(' · ')}</small></summary>${G.map(g => {
+        const BG = { ok: 'success', ng: 'warning', no: '', check: '' }[g.j.st];
+        const lab = g.un.en === 'N' ? '<span class="ig-muted">불필요</span>' : g.un.en === 'U' ? '<span class="ig-muted">요강에 언급 없음</span>' : `<span class="ig-badge ig-badge--${g.un.en === 'R' ? 'warning' : 'info'}">${g.un.en === 'R' ? '필요' : '선택'}</span> ${esc(g.j.req || '')}`;
+        const res = g.un.en === 'N' || g.un.en === 'U' ? '' : ` <span class="ig-badge${BG ? ' ig-badge--' + BG : ''}">${esc(g.j.t)}</span>${g.j.why ? ` <small>${esc(g.j.why)}</small>` : ''}`;
+        return `<div class="sh-en__dept"><small><b>${esc(g.depts.join('·'))}</b></small><br>${lab}${res}</div>`;
+      }).join('')}</details>`;
+    }
     const un = y.unit, en = y.tr.english || {}, j = SH.engJudge(y.doc, y.tr, un);
     if (un.en === 'N') return '<span class="ig-muted">불필요</span>';
     if (un.en === 'U') return '<span class="ig-muted" style="font-size:12px">요강에 언급 없음</span>';

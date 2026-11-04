@@ -340,6 +340,9 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 /* 학교 찾기: 영어 성적 칸 */
 .sh-en { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 150px; font-size: 12px; }
 .sh-en small { color: var(--ink-muted); font-size: 11px; line-height: 15px; }
+.sh-en--depts { display: block; }
+.sh-en--depts summary { cursor: pointer; }
+.sh-en__dept { margin-top: 6px; }
 
 /* ---------- 입시 결과 ---------- */
 .sh-rs { margin-top: var(--space-3); }
