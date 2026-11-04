@@ -216,6 +216,9 @@ def estimate_rules(recs, start_override=None):
                 start = y + 1; break
     cur = signature([x for x in recs if x['y'] >= start])
     prev = signature([x for x in recs if x['y'] < start])
+    # 비율만 흔들리고 인정 계열·필수 과목은 같으면 바뀐 게 아니다 (사람이 정한 시작 연도는 그대로)
+    if not start_override and prev and cur and prev['acc'] == cur['acc'] and prev['req'] == cur['req']:
+        start = ys[0]; cur = signature(recs); prev = None
     yearly = {y: signature(byy[y]) for y in ys}
     return dict(start=start, cur=cur, prev=prev, yearly=yearly)
 
@@ -264,7 +267,7 @@ def lineage_candidates(df):
 
 # ---------------- 5. 검토 엑셀에서 판단 읽기 ----------------
 def read_review(path):
-    dec = dict(lineage={}, split=set(), combo={}, start={})
+    dec = dict(lineage={}, split=set(), combo={}, start={}, univ={})
     if not path:
         return dec
     wb = openpyxl.load_workbook(path, data_only=True)
@@ -279,6 +282,12 @@ def read_review(path):
             dec['lineage'][(r['학교'], r['옛학부'])] = r['새학부']
         elif j == '분리':
             dec['split'].add((r['학교'], r['옛학부']))
+    for r in rows('학교명'):
+        if nk(r.get('판단')) == '같은학교':
+            for part in str(r['학교들']).split(' / '):
+                n = re.sub(r'\(\d{4}~\d{4}\)$', '', part)
+                if n != r['이후이름']:
+                    dec['univ'][n] = r['이후이름']
     for r in rows('소수조합'):
         j = nk(r.get('판단'))
         if j in ('인정', '제외'):
@@ -360,6 +369,10 @@ def main():
     # 3. 이름 통일 + 계보
     df['학부'] = df['학부_원표기'].map(fac_key); df['학과'] = df['학과_원표기'].map(dept_key)
     dec = read_review(a.review)
+    df['학교_원표기'] = df['학교']
+    if dec['univ']:
+        df['학교'] = df['학교'].map(lambda u: dec['univ'].get(u, u))
+        log(f'   학교 이름 합침 (판단 반영): {len(dec["univ"])}개 → ' + ', '.join(f'{a}→{b}' for a, b in dec['univ'].items()))
     lin = lineage_candidates(df)
     df['학부_계보'] = ''
     for (u, f), f2 in dec['lineage'].items():
@@ -369,9 +382,13 @@ def main():
         df.loc[(df['학교'] == u) & (df['학부'] == f), '학부_계보'] = f'{f}(분리 전)'
     log(f'3. 이름 통일: 학교 {df["학교"].nunique()} · 학부 {df.groupby(["학교", "학부"]).ngroups} · 학과 {df.groupby(["학교", "학부", "학과"]).ngroups}')
     log(f'   학부 계보 후보 {len(lin)}쌍 (지원 1명 이상 전부) · 판단 반영: 이어 붙임 {len(dec["lineage"])} · 분리 {len(dec["split"])}')
-    codes = df.groupby('대학코드')['학교'].nunique(); names = df.groupby('학교')['대학코드'].nunique()
-    univ_var = [dict(대학코드=c, 학교들=' / '.join(sorted(df.loc[df['대학코드'] == c, '학교'].unique()))) for c in codes[codes > 1].index if c]
-    univ_var += [dict(대학코드=' / '.join(sorted(df.loc[df['학교'] == n, '대학코드'].unique())), 학교들=n) for n in names[names > 1].index]
+    # 같은 대학코드에 이름이 둘 이상 = 학교 이름이 바뀌었거나 통합된 것 (코드 체계가 2020년에 바뀌어 「같은 이름·다른 코드」는 보지 않음)
+    univ_var = []
+    for c, g in df[df['대학코드'] != ''].groupby('대학코드'):
+        if g['학교'].nunique() > 1:
+            span = g.groupby('학교')['연도'].agg(['min', 'max']).sort_values('max')
+            univ_var.append(dict(대학코드=c, 학교들=' / '.join(f'{n}({a}~{b})' for n, (a, b) in span.iterrows()), 이후이름=span.index[-1],
+                                 제안='이름 변경·통합 가능성 높음' if span['max'].iloc[:-1].max() <= span['min'].iloc[-1] else '같은 해에 둘 다 있음 — 확인 필요'))
 
     # 4. 조합·계열·총점
     for se in SES:
@@ -482,7 +499,7 @@ def main():
     df['플래그'] = df['flags'].map(lambda f: ';'.join(f))
     for fl in FLAGS:
         log(f'   플래그 {fl}: {df["flags"].map(lambda f: any(x.startswith(fl) for x in f)).sum():,}행')
-    cols = ['연도', '대학코드', '학교', '학부', '학과', '학부_원표기', '학과_원표기', '학부_계보', '구분2', '합부', '합부_원값'] + \
+    cols = ['연도', '대학코드', '학교', '학부', '학과', '학교_원표기', '학부_원표기', '학과_원표기', '학부_계보', '구분2', '합부', '합부_원값'] + \
            [f'{s}_{se}' for se in SES for s in SUB] + ['TOEFL', 'TOEIC', '조합_6', '계열_6', '총점_6', '조합_11', '계열_11', '총점_11', '총점', '계열',
            '규칙단위', '규칙구간', '요강허용', '영어기준', '비교중앙값', '플래그', '기호_원값', '범위밖_원값', '원본파일', '원본행']
     mart = df[cols]
@@ -531,8 +548,10 @@ def write_review(path, df, lin, rule_rows, rules, univ_var, have_yoko):
               '2. 규칙변경 — 해마다 합격자가 낸 과목을 보면 필수 과목이 바뀐 것 같은 학부·학과입니다.',
               '   · 「현재 규칙 시작」이 맞으면 비워 두고, 다르면 「확정 시작 연도」에 연도를 적어 주세요.',
               '   · 현재 규칙 시작 연도 이후 기록만 합격 곡선에 씁니다 (지금 기준이 제일 중요하므로).',
-              '3. 소수조합 — 그 학부 합격자 대부분과 다른 과목으로 합격한 기록입니다. 판단: 인정(그 조합도 받는 학부) / 제외(잘못된 기록)',
-              '4. 학교명 — 같은 대학코드에 이름이 둘 이상이거나, 같은 이름에 코드가 둘 이상입니다. 판단: 같은 학교 / 다른 학교',
+              '3. 소수조합 — 그 학부 합격자 대부분과 다른 과목으로 합격한 기록 (3건 이상인 것만). 판단: 인정(그 조합도 받는 학부) / 제외(잘못된 기록)',
+              '   · 「그구간규칙」은 그 기간 합격자 기록으로 추정한 규칙입니다. 1~2건짜리는 자동으로 「조합불일치」 표시만 해 둡니다.',
+              '4. 학교명 — 같은 대학코드에 이름이 둘 이상인 학교 (이름 변경·통합). 판단: 같은 학교 / 다른 학교',
+              '   · 「같은 학교」면 옛 이름 기록을 「이후이름」으로 합칩니다.',
               '',
               '참고: 플래그(중복·점수없음·기호·범위밖·수준이탈·점수이상)는 사람이 판단할 필요가 없어 이 파일에 넣지 않았습니다.',
               '      이 기록을 계산에 넣을지는 화면·계산 쪽에서 정합니다.']:
@@ -552,11 +571,13 @@ def write_review(path, df, lin, rule_rows, rules, univ_var, have_yoko):
                 agg[(k, r[f'조합_{se}'], r['규칙구간'])] += 1
     rows = []
     for ((u, f, d), c, seg), n in agg.most_common():
+        if n < 3:
+            break                              # 1~2건짜리는 자동 규칙대로 둔다 (플래그는 남음)
         R = rules.get((u, f, d)) or rules.get((u, f, ''))
         rows.append(dict(학교=u, 학부=f, 학과=d, 조합=c, 건수=n, 규칙구간=seg, 그구간규칙=sig_text(R['cur'] if seg == '현재' else R['prev']) if R else '', 판단='', 메모=''))
     sheet('소수조합', rows, ['학교', '학부', '학과', '조합', '건수', '규칙구간', '그구간규칙', '판단', '메모'],
           {'학교': 20, '학부': 16, '학과': 16, '조합': 20, '그구간규칙': 40, '판단': 10, '메모': 24}, {'판단', '메모'})
-    sheet('학교명', [dict(r, 판단='', 메모='') for r in univ_var], ['대학코드', '학교들', '판단', '메모'], {'대학코드': 24, '학교들': 50, '판단': 14, '메모': 24}, {'판단', '메모'})
+    sheet('학교명', [dict(r, 판단='', 메모='') for r in univ_var], ['대학코드', '학교들', '이후이름', '제안', '판단', '메모'], {'대학코드': 14, '학교들': 56, '이후이름': 20, '제안': 26, '판단': 14, '메모': 24}, {'판단', '메모'})
     wb.save(path)
 
 
