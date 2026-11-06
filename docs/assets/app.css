@@ -368,22 +368,39 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-scroll thead th { position: sticky; top: 0; z-index: 3; background: var(--surface); box-shadow: 0 1px 0 var(--line); }
 .sh-scroll thead th:first-child { z-index: 4; }
 
+/* ---------- 2026-11-06 개편: 메뉴 ①~⑤를 늘 펼쳐 둔다 (가로 스크롤로 숨지 않게 줄바꿈) ---------- */
+.ig-appbar__nav { flex-wrap: wrap; overflow: visible; row-gap: 0; }
+@media (max-width: 760px) { .ig-appbar__nav a { padding: 0 var(--space-2); font-size: 14px; } }
+
+/* 홈: 왼쪽 검색칸 → 오른쪽 바로가기 버튼 */
+.sh-home { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--space-5); align-items: stretch; }
+.sh-home__q { padding: var(--space-6); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-card); }
+.sh-home__q h1 { margin: 0; font-size: 26px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; }
+.sh-home__kinds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
+.sh-home__go { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-card); }
+.sh-home__go h2 { margin: 0; font-size: 15px; font-weight: 700; }
+.sh-home__go .sh-sel { font-size: 13px; color: var(--ink-muted); margin: -4px 0 4px; }
+.sh-home__go .sh-sel b { color: var(--ink); font-size: 16px; }
+.sh-gobtn { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); min-height: 52px; padding: 0 var(--space-4); border-radius: var(--radius-lg); background: var(--surface-hover); color: var(--ink); text-decoration: none; border: 1px solid transparent; }
+.sh-gobtn:hover { border-color: var(--line); background: var(--surface-muted); }
+.sh-gobtn b { font-size: 15px; }
+.sh-gobtn small { display: block; color: var(--ink-muted); font-size: 12px; font-weight: 400; }
+.sh-gobtn .sh-navno { width: 24px; height: 24px; font-size: 12px; }
+.sh-home .sh-sugg .sh-sugg__h { margin: 8px 12px 2px; font-size: 11px; font-weight: 700; color: var(--ink-muted); letter-spacing: .02em; }
+@media (max-width: 880px) { .sh-home { grid-template-columns: minmax(0, 1fr); } }
+
+/* 학교 찾기: 키워드 검색 + 점수 접기 */
+.sh-kw .ig-input { min-height: 52px; font-size: 17px; border-radius: var(--radius-lg); }
+.sh-scorebox > summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; align-items: center; gap: var(--space-2); }
+.sh-scorebox > summary::-webkit-details-marker { display: none; }
+.sh-scorebox[open] > summary { margin-bottom: var(--space-4); }
+.sh-trk { display: flex; flex-wrap: wrap; gap: 4px; }
+.sh-trk a { font-size: 12px; padding: 1px 8px; border-radius: var(--radius-full); background: var(--surface-muted); color: var(--ink); text-decoration: none; white-space: nowrap; }
+.sh-trk a:hover { box-shadow: inset 0 0 0 1px var(--line); }
+.sh-hit { font-size: 12px; color: var(--ink-muted); }
+.sh-hit mark { background: none; color: var(--ink); font-weight: 700; }
 .ig-eju span { white-space: nowrap; }
 
-/* ---------- 글로벌 메뉴: 한 줄에 안 들어가면 햄버거로 ---------- */
-.sh-menu-btn { display: none; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: calc(var(--space-2) * -1); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink); cursor: pointer; }
-.sh-menu-btn:hover { background: var(--surface-hover); }
-@media (max-width: 1420px) {
-  .sh-menu-btn { display: inline-flex; }
-  .ig-appbar__in { position: relative; flex-wrap: nowrap; gap: var(--space-3); }
-  .ig-appbar__nav { position: absolute; top: 100%; left: var(--space-4); width: min(360px, calc(100vw - 2 * var(--space-4))); display: none; flex-direction: column; gap: 2px; margin: 0; padding: var(--space-2); overflow: visible;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--shadow-pop); }
-  .ig-appbar.is-menu .ig-appbar__nav { display: flex; }
-  .ig-appbar__nav a { min-height: 46px; width: 100%; }
-  .ig-appbar__nav a[aria-current="page"] { background: var(--surface-hover); }
-  .ig-appbar__nav a[aria-current="page"]::after { display: none; }
-  .sh-appsearch { margin-left: auto; flex: 0 1 260px; }
-}
 
 /* 상담 리포트: 리포트에 넣을 학교 고르기 */
 .sh-rsel { max-width: 794px; margin: 0 auto 12px; display: flex; flex-direction: column; gap: 8px; }

@@ -1,0 +1,47 @@
+# GitHub Pages 배포: 본판(main) + 개발판(dev)을 한 사이트로 묶어 올린다 (2026-11-06)
+#   본판  https://cw-sogolab.github.io/shinro/docs/       ← 원장님 주소 (main 브랜치)
+#   개발판 https://cw-sogolab.github.io/shinro/dev/docs/   ← 확인용 (dev 브랜치, 데이터는 드라이브 「진학상담_데이터_dev」)
+# 처음 한 번 저장소 설정이 필요하다: Settings → Pages → Source 를 「GitHub Actions」로,
+#   Settings → Environments → github-pages → Deployment branches 에 dev 추가.
+# 데이터(js)는 저장소에 없으므로 여기서 올라가는 것은 화면 코드뿐이다.
+name: Pages (본판 main + 개발판 dev)
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: 본판(main) 받기
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: _site
+      - name: 개발판(dev) 받기
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: dev
+          path: _site/dev
+      - name: 배포에 필요 없는 것 빼기
+        run: |
+          rm -rf _site/.git _site/.github _site/dev/.git _site/dev/.github
+          touch _site/.nojekyll
+          ls _site _site/dev || true
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

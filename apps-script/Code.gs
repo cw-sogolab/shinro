@@ -4,12 +4,17 @@
  * 데이터(합격 집계·모집요강·모의고사 등 js 파일 9개)는 선생님 구글 드라이브 폴더에 평문으로 있고,
  * 이 웹앱이 「접속 코드」를 확인한 뒤에만 읽어서 화면(GitHub Pages)에 내려 줍니다. 저장소에는 데이터가 없습니다.
  *
+ * 개발판·본판 (2026-11-06): 화면이 payload.env = 'dev' 를 보내면 개발판 폴더, 아니면 본판 폴더를 읽는다.
+ *   본판 = 원장님이 보는 주소(…/shinro/docs/), 개발판 = …/shinro/dev/docs/ (GitHub Actions 가 dev 브랜치를 그 경로에 배포)
+ *   데이터는 개발판 폴더에 먼저 올려 확인 → 편집기에서 promoteDevToProd() 실행으로 본판 폴더에 복사 (본판의 이전 파일은 「_이전」 폴더에 보관)
+ *
  * 스크립트 속성(설치용 setup() 이 넣음 — 저장소에 올리지 말 것):
- *   DATA_FOLDER_ID  (선택) 데이터 js 가 들어 있는 드라이브 폴더 ID. 없으면 「진학상담_데이터」라는 이름의 폴더를 찾음
+ *   DATA_FOLDER_ID      (선택) 본판 데이터 js 폴더 ID. 없으면 「진학상담_데이터」라는 이름의 폴더를 찾음
+ *   DATA_FOLDER_ID_DEV  (선택) 개발판 데이터 폴더 ID. 없으면 「진학상담_데이터_dev」라는 이름의 폴더를 찾음
  *   CODE_HASHES     허용하는 접속 코드의 해시(쉼표로 구분). 코드 자체는 저장하지 않음
  * 실행 사용자는 「나」(선생님)이라 접속하는 사람이 구글 계정이 없어도 됨. 폴더를 공유할 필요 없음.
  */
-var VER = 'shinro-1';
+var VER = 'shinro-2';
 var DATA_NAMES = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];   // 화면이 읽는 순서
 var OPTIONAL = ['students', 'results'];   // 폴더에 있으면 같이 내려 줌(실제 학생 성적 · 입시 결과 지원자 기록). 없어도 오류 아님
 var MAX_FAIL = 10, FAIL_SEC = 300;   // 5분 안에 틀린 코드 10번이면 5분 동안 잠금
@@ -21,6 +26,7 @@ function doPost(e) {
   try { body = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return json_({ ok: false, error: 'bad_request' }); }
   var action = String(body.action || ''), p = body.payload || {};
   try {
+    var env = p.env === 'dev' ? 'dev' : 'prod';
     if (action === 'ping') return json_({ ok: true, ver: VER });
     if (action !== 'check' && action !== 'data') return json_({ ok: false, error: 'unknown' });
     var cache = CacheService.getScriptCache();
@@ -31,7 +37,7 @@ function doPost(e) {
       return json_({ ok: false, error: 'bad' });
     }
     if (action === 'check') return json_({ ok: true, ver: VER });
-    return json_(readAll_());
+    return json_(readAll_(env));
   } catch (err) {
     return json_({ ok: false, error: 'server', msg: String(err && err.message || err) });
   }
@@ -49,19 +55,20 @@ function codeOk_(code) {
   return list.indexOf(hash_(code)) >= 0;
 }
 
-var FOLDER_NAME = '진학상담_데이터';
-function folder_() {
-  var id = PropertiesService.getScriptProperties().getProperty('DATA_FOLDER_ID');
+var FOLDER_NAME = '진학상담_데이터', FOLDER_NAME_DEV = '진학상담_데이터_dev';
+function folder_(env) {
+  var dev = env === 'dev', name = dev ? FOLDER_NAME_DEV : FOLDER_NAME;
+  var id = PropertiesService.getScriptProperties().getProperty(dev ? 'DATA_FOLDER_ID_DEV' : 'DATA_FOLDER_ID');
   if (id) return DriveApp.getFolderById(id);
-  var it = DriveApp.getFoldersByName(FOLDER_NAME);
-  if (!it.hasNext()) throw new Error('드라이브에 「' + FOLDER_NAME + '」 폴더가 없습니다');
+  var it = DriveApp.getFoldersByName(name);
+  if (!it.hasNext()) throw new Error('드라이브에 「' + name + '」 폴더가 없습니다');
   return it.next();
 }
 
 /** 폴더의 데이터 js 를 읽어 gzip+base64 문자열로 만든다. 만든 결과는 6시간 캐시 (파일이 바뀌면 키가 달라져 새로 만듦) */
 var CHUNK = 90000, TTL = 21600;
-function readAll_() {
-  var folder = folder_(), blobs = {}, sig = [], names = [];
+function readAll_(env) {
+  var folder = folder_(env), blobs = {}, sig = [env || 'prod'], names = [];
   DATA_NAMES.concat(OPTIONAL).forEach(function (n) {
     var it = folder.getFilesByName(n + '.js');
     if (!it.hasNext()) { if (OPTIONAL.indexOf(n) >= 0) return; throw new Error(n + '.js 가 폴더에 없습니다'); }
@@ -81,7 +88,7 @@ function readAll_() {
     gz = Utilities.base64Encode(blob.getBytes());
     toCache_(cache, key, gz);
   }
-  return { ok: true, ver: VER, gz: gz };
+  return { ok: true, ver: VER, env: env || 'prod', gz: gz };
 }
 function fromCache_(cache, key) {
   try {
@@ -100,14 +107,37 @@ function toCache_(cache, key, text) {
   } catch (e) { /* 캐시가 안 되어도 응답은 나감 */ }
 }
 
-/** 편집기에서 직접 실행해 보는 점검: 폴더·파일·코드 개수 */
+/** 편집기에서 직접 실행해 보는 점검: 폴더·파일·코드 개수 (본판·개발판 둘 다) */
 function selfTest() {
   var P = PropertiesService.getScriptProperties();
   Logger.log('코드 ' + String(P.getProperty('CODE_HASHES') || '').split(',').filter(String).length + '개 등록');
-  var folder = folder_();
-  Logger.log('폴더: ' + folder.getName());
-  DATA_NAMES.forEach(function (n) {
-    var it = folder.getFilesByName(n + '.js');
-    Logger.log(n + '.js: ' + (it.hasNext() ? Math.round(it.next().getSize() / 1024) + ' KB' : '없음 ← 폴더에 올려 주세요'));
+  ['prod', 'dev'].forEach(function (env) {
+    var folder;
+    try { folder = folder_(env); } catch (e) { Logger.log((env === 'dev' ? '개발판' : '본판') + ': ' + e.message); return; }
+    Logger.log((env === 'dev' ? '개발판' : '본판') + ' 폴더: ' + folder.getName());
+    DATA_NAMES.concat(OPTIONAL).forEach(function (n) {
+      var it = folder.getFilesByName(n + '.js');
+      Logger.log('  ' + n + '.js: ' + (it.hasNext() ? Math.round(it.next().getSize() / 1024) + ' KB' : (OPTIONAL.indexOf(n) >= 0 ? '없음 (선택)' : '없음 ← 폴더에 올려 주세요')));
+    });
   });
+}
+
+/** 개발판에서 확인이 끝난 데이터를 본판으로 올린다 (편집기에서 직접 실행).
+ *  개발판 폴더의 데이터 js 를 본판 폴더에 같은 이름으로 덮어쓰고, 덮어쓰기 전 본판 파일은 「_이전/날짜_시각」 폴더에 복사해 둔다.
+ *  개발판에 없는 파일은 본판 것을 그대로 둔다. */
+function promoteDevToProd() {
+  var dev = folder_('dev'), prod = folder_('prod');
+  var stamp = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd_HHmm');
+  var arch = (function () { var it = prod.getFoldersByName('_이전'); return it.hasNext() ? it.next() : prod.createFolder('_이전'); })().createFolder(stamp);
+  var done = [];
+  DATA_NAMES.concat(OPTIONAL).forEach(function (n) {
+    var di = dev.getFilesByName(n + '.js'); if (!di.hasNext()) return;
+    var text = di.next().getBlob().getDataAsString('UTF-8');
+    var pi = prod.getFilesByName(n + '.js');
+    if (pi.hasNext()) { var pf = pi.next(); pf.makeCopy(n + '.js', arch); pf.setContent(text); }
+    else prod.createFile(n + '.js', text, 'text/javascript');
+    done.push(n);
+  });
+  Logger.log('본판으로 올림: ' + done.join(', ') + ' · 이전 파일: _이전/' + stamp);
+  return done;
 }

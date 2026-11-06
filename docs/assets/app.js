@@ -14,9 +14,10 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const sig = t => 1 / (1 + Math.exp(-t));
   const icon = (n, c) => IG.icon(n, c || 'ig-icon--sm');
+  const NS = (window.SHINRO_CONFIG || {}).ENV === 'dev' ? 'shinro.dev.' : 'shinro.';   // 개발판과 본판은 같은 주소(github.io)라 저장 칸을 나눔
   const store = {
-    get(k, d) { try { const v = localStorage.getItem('shinro.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('shinro.' + k, JSON.stringify(v)); } catch (e) { } }
+    get(k, d) { try { const v = localStorage.getItem(NS + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch (e) { } }
   };
   const TODAY = (() => { const q = new URLSearchParams(location.search).get('today'); const d = q ? new Date(q + 'T00:00') : new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
   const ISO = `${TODAY.getFullYear()}-${String(TODAY.getMonth() + 1).padStart(2, '0')}-${String(TODAY.getDate()).padStart(2, '0')}`;
@@ -114,9 +115,16 @@
   }
 
   /* ---------- 상태 ---------- */
-  const DEFAULT = { name: '예시 학생', kind: '문과', sci: ['phy', 'chem'], target: 'auto',
-    rows: { m1: { jp: 290, so: 130, math: 120, ki: 35 }, m2: { jp: 305, so: 138, math: 128, ki: 35 }, e6: { jp: 318, so: 142, math: 135, ki: 40 }, m3: { jp: 320, so: 145, math: 140, ki: 40 }, m4: {}, e11: {} } };
-  let S = store.get('student', DEFAULT);
+  /* 처음 열면 학생이 비어 있다 (2026-11-06). 학생은 이 탭(세션)에만 저장 — 창을 닫으면 지워지고, 다음에 열면 빈 상태로 시작 */
+  const DEFAULT = { name: '', kind: '문과', sci: ['phy', 'chem'], target: 'auto', rows: { m1: {}, m2: {}, e6: {}, m3: {}, m4: {}, e11: {} } };
+  const sstore = {
+    get(k, d) { try { const v = sessionStorage.getItem(NS + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { sessionStorage.setItem(NS + k, JSON.stringify(v)); } catch (e) { } }
+  };
+  try { localStorage.removeItem('shinro.student'); } catch (e) { }   // 예전 판이 남긴 학생(localStorage) 지우기
+  let S = sstore.get('student', null) || JSON.parse(JSON.stringify(DEFAULT));
+  const hasStudent = () => !!(S.name && S.name.trim()) || EXAMS.some(e => Object.values(S.rows[e.id] || {}).some(v => v !== '' && v != null));
+  function clearStudent() { S = JSON.parse(JSON.stringify(DEFAULT)); switchPicks(); save(); }
   /* 학생 목록 (tools/students_export.py → students.js). 저장소엔 없고 드라이브 폴더에서 접속 코드 확인 후 내려옴. 없으면 직접 입력만 */
   const STU = window.STUDENTS && window.STUDENTS.list && window.STUDENTS.list.length ? window.STUDENTS : null;
   /* dest: 불러온 뒤 갈 화면. 홈에서 부르면 'home'으로 그대로 머문다 */
@@ -148,7 +156,7 @@
   let tab = 'pred', sel = null, filt = store.get('filt', { q: '', weak: true });
   const ukey = u => `${u.s}|${u.f}|${u.k}`;
   const unitByKey = k => C.units.find(u => ukey(u) === k);
-  function save() { store.set('student', S); }
+  function save() { sstore.set('student', S); }   // 학생은 이 탭(세션)에만
   /* 비교에 담은 학교·리포트에 넣을 학교는 학생별로 따로 기억한다: 다른 학생으로 바꾸면 비어 있고, 이전 학생을 다시 불러오면 그때 담은 것이 돌아온다 */
   const picksKey = () => `${S.name}|${S.campus || ''}|${S.kind}`;   // 동명이인은 캠퍼스·계열로 구분
   let picksName = picksKey();
@@ -275,8 +283,8 @@
     const subs = subjects();
     const seg = (id, items, on, label) => `<div class="ig-seg" role="group" aria-label="${label}" id="${id}">${items.map(([v, l]) => `<button type="button" value="${v}" aria-pressed="${on(v)}">${l}</button>`).join('')}</div>`;
     app.innerHTML = `
-      ${pagehead('진학 상담 · 예측·추천', esc(S.name), S.src ? `${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · 학생 데이터(${esc(STU.built)} 기준)에서 불러옴 · 점수를 고치면 이 화면에서만 바뀜` : `${S.kind} · 성적 → 다음 EJU 예측 → 안정·적정·도전 추천 → 비교에 담기`,
-        `<a class="ig-btn" href="#report">${icon('file')}상담 리포트 (PDF)</a><a class="ig-btn" href="#curve">${icon('chart')}합격 곡선 모아 보기</a><button type="button" class="ig-btn ig-btn--ghost" id="reset">${icon('edit')}예시 점수로 되돌리기</button>`)}
+      ${pagehead('진학 상담 · ② 예측·추천', S.name ? esc(S.name) : '학생 미선택', S.src ? `${S.kind}${S.campus ? ' · ' + esc(S.campus) : ''} · 「${esc(STU.source)}」(${esc(STU.built)} 기준)에서 불러옴 · 점수를 고치면 이 화면에서만 바뀜` : `${S.kind} · 성적 → 다음 EJU 예측 → 안정·적정·도전 추천 → 비교에 담기`,
+        `<a class="ig-btn" href="#report">${icon('file')}상담 리포트 (PDF)</a><a class="ig-btn" href="#curve">${icon('chart')}합격 곡선 모아 보기</a><button type="button" class="ig-btn ig-btn--ghost" id="reset">${icon('edit')}학생 비우기</button>`)}
       <section>
         ${sectionH(1, '성적', '모의고사와 EJU를 따로 표시 · 본 시험만 입력')}
         <div class="ig-card">
@@ -319,14 +327,14 @@
       </section>`;
 
     bindEngInputs();
-    document.getElementById('nm').oninput = e => { S.name = e.target.value; save(); document.getElementById('ptitle').textContent = S.name; };
+    document.getElementById('nm').oninput = e => { S.name = e.target.value; save(); document.getElementById('ptitle').textContent = S.name || '학생 미선택'; };
     document.getElementById('nm').onchange = () => { switchPicks(); if (lastPred) drawRec(); };
     if (STU) bindStudentSearch();
     app.querySelectorAll('#kind button').forEach(b => b.onclick = () => { S.kind = b.value; save(); viewPred(); });
     app.querySelectorAll('#sci button').forEach(b => b.onclick = () => {
       const s = b.value; if (S.sci.includes(s)) { b.setAttribute('aria-pressed', 'true'); return; } S.sci = [S.sci[1], s]; save(); viewPred();
     });
-    document.getElementById('reset').onclick = () => { S = JSON.parse(JSON.stringify(DEFAULT)); switchPicks(); save(); viewPred(); IG.toast('예시 점수로 되돌렸습니다'); };
+    document.getElementById('reset').onclick = () => { clearStudent(); viewPred(); IG.toast('학생을 비웠습니다'); };
     if (STU && store.get('sqFocus', false)) { store.set('sqFocus', false); const q = document.getElementById('sq'); if (q) q.focus(); }
     app.querySelectorAll('.sh-scores input').forEach(inp => inp.oninput = () => {
       const r = inp.dataset.r, s = inp.dataset.s; S.rows[r] = S.rows[r] || {};
@@ -598,7 +606,7 @@
         <li><b>선</b> — 점들을 가장 잘 지나는 S자 곡선(로지스틱 회귀): 합격 확률 = 1 / (1 + e<sup>−(a + b×점수)</sup>). 최근 해일수록 가중치를 크게(1·0.7·0.5·0.35·0.25) 줬어요.</li>
         <li><b>올해 보정</b> — 같은 점수의 합격률이 해마다 조금씩 떨어져서, 가장 최근 해 수준에 맞춰 곡선을 오른쪽으로 옮겼어요 (이 학부에서는 약 ${Math.round(Math.abs(C.shift) / u.b)}점).</li>
         <li><b>학생 위치</b> — 예측 점수 하나가 아니라 예측 범위(±오차) 전체에서 합격 확률을 평균 내요. 그래서 곡선 위 값과 조금 다를 수 있어요.</li>
-        <li><b>믿을 만한가</b> — 2026년을 모르는 상태로 계산해 맞춰 보니 안정 74% · 적정 52% · 도전 30%가 실제로 합격했어요. <a href="#how">계산 방법 자세히</a></li></ol></details>
+        <li><b>믿을 만한가</b> — 2026년을 모르는 상태로 계산해 맞춰 보니 안정 74% · 적정 52% · 도전 30%가 실제로 합격했어요. <span class="ig-muted">(자세한 계산은 위키 「01_합격곡선」)</span></li></ol></details>
       <div style="margin-top:12px">${DISC}</div>`;
     IG.passCurve(document.getElementById('cv'), { lo, hi, a: u.a, b: u.b, shift: C.shift, bins: u.bins,
       you: x != null ? { score: Math.round(x), lo: Math.max(lo, Math.round(x - sd)), hi: Math.min(hi, Math.round(x + sd)), p: pAt(u, x, sd) } : null,
@@ -611,7 +619,7 @@
   function viewReport() {
     const P = predict();
     if (P.total == null) {
-      app.innerHTML = pagehead('진학 상담 · 상담 리포트', esc(S.name), '') + `<div class="ig-card ig-empty">${icon('trend', '')}<b>아직 예측할 수 없어요</b><p>모의고사나 EJU 점수를 넣으면 리포트를 만들 수 있어요.</p><a class="ig-btn ig-btn--primary" href="#pred">예측·추천으로 가기</a></div>`;
+      app.innerHTML = pagehead('진학 상담 · 상담 리포트', S.name ? esc(S.name) : '학생 미선택', '') + `<div class="ig-card ig-empty">${icon('trend', '')}<b>아직 예측할 수 없어요</b><p>모의고사나 EJU 점수를 넣으면 리포트를 만들 수 있어요.</p><a class="ig-btn ig-btn--primary" href="#pred">예측·추천으로 가기</a></div>`;
       return;
     }
     const [lo, hi] = predRange(P), isAct = P.target === 'a11';
@@ -694,40 +702,13 @@
     };
   }
 
-  /* ---------- 탭 5: 검증 ---------- */
-  function viewHow() {
-    const z = [['안정', '70%+', '67%', '74%'], ['적정', '40~70%', '42%', '52%'], ['도전', '15~40%', '22%', '30%'], [null, '15% 미만', '6%', '10%']];
-    app.innerHTML = pagehead('진학 상담 · 계산 방법', '어떻게 계산하고, 얼마나 맞나', '자세한 설명은 레포의 「계산방법_원장님설명.md」 · 여기는 요약과 검증 결과') + `
-      <section class="ig-card sh-prose"><h3 class="ig-card__title">세 가지 기능이 쓰는 데이터</h3>
-        <div class="ig-table-wrap"><table class="ig-table"><thead><tr><th>기능</th><th>원래 엑셀</th><th>계산</th></tr></thead><tbody>
-          <tr><td><b>① EJU로 학교 찾기</b></td><td>EJU통합_성적분석 v8 (조회 시트)</td><td>학교·학부·계열마다 합격자의 EJU 점수 분포(최저·하위25%·중앙·상위25%·최고)를 미리 계산 → 학생 점수가 그 안 어디인지</td></tr>
-          <tr><td><b>② 예측·추천</b></td><td>EJU_점수예측_분석 (모델계수 시트)</td><td>회차별 등가점수 = a + b×(점수 − 난이도보정) → 정확도 가중평균 → 11월은 상위권 보정 → 범위(±오차) → 합격 곡선으로 합격 가능성</td></tr>
-          <tr><td><b>③ 모집요강</b></td><td>모집요강 PDF 9건</td><td>원문 그대로 정리(숫자·날짜는 원문만, 원문 쪽수 표시) · 한국어 번역 + 일본어 원문</td></tr>
-        </tbody></table></div></section>
-      <div class="ig-grid ig-grid--2">
-        <section class="ig-card sh-prose"><h3 class="ig-card__title">EJU 예측</h3>
-          <p>학원 엑셀 「EJU_점수예측_분석」의 모델계수를 그대로 씁니다. 엑셀이 계산한 11월 예측 1,866개(학생 481명 × 과목)와 이 화면의 계산이 소수점까지 같습니다.</p>
-          <dl class="ig-kv"><div><dt>일본어 평균 오차</dt><dd>약 25점</dd></div><div><dt>종합</dt><dd>약 16점</dd></div><div><dt>수학</dt><dd>약 11점</dd></div></dl>
-          <p class="sh-note">2026년 6월 실제 점수 대비</p></section>
-        <section class="ig-card ig-card--flush"><div class="ig-card__head"><div><h3 class="ig-card__title">추천 (합격 곡선)</h3><p class="ig-card__sub">2022~2025년 데이터로만 곡선을 만들고 2026년 실제 결과와 비교</p></div></div>
-          <div class="ig-table-wrap"><table class="ig-table"><thead><tr><th>구간</th><th class="num">보정 전 실제</th><th class="num">보정 후 실제</th></tr></thead>
-          <tbody>${z.map(r => `<tr><td>${r[0] ? zoneChip(r[0]) : '<span class="ig-badge">15% 미만</span>'} <span class="ig-muted">${r[0] ? r[1] : ''}</span></td><td class="num ig-muted">${r[2]}</td><td class="num"><b>${r[3]}</b></td></tr>`).join('')}</tbody></table></div></section>
-      </div>
-      <section class="ig-card sh-prose"><h3 class="ig-card__title">알아 둘 것</h3><ul>
-        <li>같은 점수라도 합격률이 해마다 떨어져(문과 600~650점대 2022년 47% → 2026년 36%) 최근 해 수준으로 보정했습니다.</li>
-        <li>예측 80% 이상이어도 실제는 80% 근처에서 멈춥니다. 그래서 90% 이상은 「90%+」로만 표시합니다.</li>
-        <li>점수를 알려준 지원자만의 데이터라 전체 지원자와 다를 수 있습니다. 학과 차이는 학부로 묶었습니다.</li>
-        <li>자세한 표: iCloud 「EJU성적/EJU_합격곡선_v1.xlsx」</li></ul></section>
-      ${DISC}`;
-  }
-
   /* ---------- 라우터 · 다른 탭과 나누는 도우미 ---------- */
-  const VIEWS = { pred: viewPred, cmp: viewCmp, curve: viewCurve, how: viewHow, report: viewReport };
+  const VIEWS = { pred: viewPred, cmp: viewCmp, curve: viewCurve, report: viewReport };
   function route() {
     const [path, qs] = location.hash.slice(1).split('?'); const parts = path.split('/').filter(Boolean);
     let t = parts[0] || 'home'; if (!VIEWS[t]) t = 'home';
     const prev = tab; tab = t;
-    const nt = { curve: 'pred', school: 'find', report: 'pred' }[t] || t;
+    const nt = { curve: 'pred', school: 'find', report: 'pred', results: 'find' }[t] || t;
     document.querySelectorAll('.ig-appbar__nav a[data-t]').forEach(a => a.dataset.t === nt ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
     const keep = VIEWS[t](parts.slice(1), new URLSearchParams(qs || ''));
     if (keep !== 'keep') window.scrollTo(0, 0);
@@ -735,23 +716,14 @@
   function go(h) { if (location.hash.slice(1) === h) route(); else location.hash = h; }
   window.SH = { views: VIEWS, go, esc, icon, store, ISO, TODAY, parse, WD, md, fmt, range, dday, ddayOf, pct, yen, DISC, KO, Y, C, M,
     SUBJ, MAXS, ZK, zoneChip, school, koName, pagehead, sectionH, yokoFor, yokoByKey, curveFor, evalUnit, predict, examTotal,
-    cmpKeyForYoko, toggleCmp, addBtn, save, engJudge, engSummary, engInputsHtml, bindEngInputs, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
+    cmpKeyForYoko, toggleCmp, addBtn, save, engJudge, engSummary, engInputsHtml, bindEngInputs, hasStudents: !!STU, studentCount: STU ? STU.list.length : 0, bindStudentSearch, loadStudent, students: STU ? STU.list : [], studentSource: STU ? `${STU.source} (${STU.built} 기준)` : '', hasStudent, clearStudent, EXAMS, pAt, setSd, setScore, SETLAB, ukey, unitByKey, school, showCurve(i) { sel = i; go('curve'); }, get S() { return S; }, get cmp() { return cmp; }, subjects, parts };
   document.querySelectorAll('[data-t]').forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.t); });
   window.addEventListener('hashchange', route);
-  /* 메뉴가 한 줄에 안 들어가는 화면에서는 햄버거 버튼으로 전체 메뉴를 펼친다 (가로로 스크롤해서 찾지 않아도 되게) */
-  (() => {
-    const bar = document.querySelector('.ig-appbar'), mb = document.getElementById('menuBtn'); if (!bar || !mb) return;
-    const set = on => { bar.classList.toggle('is-menu', on); mb.setAttribute('aria-expanded', String(on)); };
-    mb.onclick = () => set(!bar.classList.contains('is-menu'));
-    bar.querySelectorAll('.ig-appbar__nav a').forEach(a => a.addEventListener('click', () => set(false)));
-    document.addEventListener('click', e => { if (!bar.contains(e.target)) set(false); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
-    window.addEventListener('hashchange', () => set(false));
-  })();
+  /* 메뉴는 늘 펼쳐 둔다 (2026-11-06: 햄버거 없앰 — 원장님 요청). 좁으면 app.css에서 줄바꿈 */
   const verEl = document.getElementById('ver'); if (verEl) verEl.textContent = `${C.version || 'v1'} · ${C.units.length}개`;
   document.getElementById('foot').innerHTML = `예측 모델 ${esc(M.built)} · 합격 곡선 ${C.units.length}개 학부 (${C.years[0]}~${C.years[1]}) · 모집요강 ${Y ? Y.docs.length : 0}건${window.MOCK ? ` · 모의고사 ${window.MOCK.year}년 ${window.MOCK.rounds.length}회분` : ''} · 학생 이름·점수는 이 브라우저에만 저장되고 서버로 보내지 않습니다. 합격·모의고사 데이터는 학원 밖 공유 금지.`;
   setCmp(cmp);
-  if (STU) { const band = document.querySelector('.ig-band'); if (band) { band.className = 'ig-band ig-band--dev'; band.textContent = `실제 학생 ${STU.list.length}명 성적 (${STU.built} 기준) · 접속 코드로만 열림 · 화면 공유·캡처·전달 주의`; } }
+  if (STU) { const band = document.querySelector('.ig-band'); if (band) { band.className = 'ig-band ig-band--dev'; band.textContent = `${NS === 'shinro.dev.' ? '개발판 · ' : ''}실제 학생 ${STU.list.length}명 성적 (${STU.built} 기준) · 접속 코드로만 열림 · 화면 공유·캡처·전달 주의`; } }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', route);   // 정적으로 읽을 때. lock.js로 읽을 때는 모든 view-*.js가 등록된 뒤 lock.js가 hashchange로 첫 화면을 시작한다
 })();
 

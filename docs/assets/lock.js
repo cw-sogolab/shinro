@@ -4,9 +4,9 @@
 (function () {
   "use strict";
   const DATA = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];
-  const APP = ['eng_rules', 'app', 'view-yoko', 'view-mock', 'view-score', 'view-school', 'view-results', 'view-major'];
+  const APP = ['eng_rules', 'app', 'view-yoko', 'view-mock', 'view-school', 'view-results'];   // 채점 비교(view-score)는 2026-11-06 위키(wiki/03_채점비교.md)로 옮김
   const A = 'assets/';
-  const URL_ = (window.SHINRO_CONFIG || {}).API_URL || '';
+  const URL_ = (window.SHINRO_CONFIG || {}).API_URL || '', ENV = (window.SHINRO_CONFIG || {}).ENV === 'dev' ? 'dev' : 'prod';
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
   const loadTag = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error(src)); document.body.appendChild(s); });
   /* 화면 코드는 매번 서버에 최신인지 확인해서 받는다(바뀌지 않았으면 304 로 거의 받지 않음). 그냥 script 태그로 불러오면 GitHub Pages 의 10분 캐시 때문에
@@ -29,7 +29,7 @@
     let r;
     try {
       // text/plain 으로 보내야 브라우저가 사전 확인(CORS preflight) 없이 Apps Script 로 보냄
-      const res = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'data', payload: { code } }) });
+      const res = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'data', payload: { code, env: ENV } }) });
       r = res.ok ? await res.json() : { ok: false, error: 'server' };
     } catch (e) { throw new Error('net'); }
     if (!r.ok) throw new Error(r.error || 'server');
@@ -74,6 +74,7 @@
   function warm() { try { fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: '{"action":"ping"}' }).catch(() => {}); } catch (e) { /* 무시 */ } }
 
   async function boot() {
+    if (ENV === 'dev') { const b = document.querySelector('.ig-band'); if (b) { b.className = 'ig-band ig-band--dev'; b.textContent = '개발판 · 확인용 · 원장님 주소가 아닙니다 (데이터: 진학상담_데이터_dev)'; } }
     const dev = /[?&]dev\b/.test(location.search);
     if (dev || !URL_) {   // 평문 데이터로 바로 열기 (개발용)
       try { for (const n of DATA) await load(A + n + '.js'); await startApp(); } catch (e) { document.body.insertAdjacentHTML('beforeend', '<p style="padding:24px">데이터 파일을 찾지 못했습니다: ' + String(e.message).replace(/[<>&]/g, '') + '</p>'); }

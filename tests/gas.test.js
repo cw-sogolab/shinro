@@ -6,8 +6,8 @@ const norm = s => String(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
 const H = c => crypto.createHash('sha256').update('shinro|' + norm(c)).digest('hex');
 const CODE_A = 'ABCD-EFGH-JKLM', CODE_B = 'WXYZ-2345-6789';
 const reads = { n: 0 };
-function load(files) {
-  const props = { DATA_FOLDER_ID: 'F1', CODE_HASHES: [H(CODE_A), H(CODE_B)].join(',') }, cache = {};
+function load(files, devFiles) {
+  const props = { DATA_FOLDER_ID: 'F1', DATA_FOLDER_ID_DEV: 'F2', CODE_HASHES: [H(CODE_A), H(CODE_B)].join(',') }, cache = {};
   const sb = {
     console,
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: s => ({ s, setMimeType() { return this; } }) },
@@ -18,8 +18,11 @@ function load(files) {
       computeDigest: (a, s) => Array.from(crypto.createHash('sha256').update(s).digest()).map(x => (x > 127 ? x - 256 : x)),
       newBlob: s => ({ bytes: Buffer.from(s) }), gzip: b => ({ getBytes: () => zlib.gzipSync(b.bytes) }), base64Encode: b => Buffer.from(b).toString('base64'),
     },
-    DriveApp: (() => { const folder = { getName: () => '진학상담_데이터', getFilesByName: n => { const has = n in files; let u = false; return { hasNext: () => has && !u, next: () => { u = true; return { getBlob: () => { reads.n++; return { getDataAsString: () => files[n] }; }, getSize: () => files[n].length, getLastUpdated: () => ({ getTime: () => 1 }) }; } }; } };
-      return { getFolderById: id => { assert.strictEqual(id, 'F1'); return folder; }, getFoldersByName: nm => { let u = false; const ok = nm === '진학상담_데이터' && !props.DATA_FOLDER_ID; return { hasNext: () => ok && !u, next: () => { u = true; return folder; } }; } }; })(),
+    DriveApp: (() => {
+      const mkFolder = (name, fs_) => ({ getName: () => name, getFilesByName: n => { const has = n in fs_; let u = false; return { hasNext: () => has && !u, next: () => { u = true; return { getBlob: () => { reads.n++; return { getDataAsString: () => fs_[n] }; }, getSize: () => fs_[n].length, getLastUpdated: () => ({ getTime: () => 1 }) }; } }; } });
+      const folder = mkFolder('진학상담_데이터', files), dev = devFiles ? mkFolder('진학상담_데이터_dev', devFiles) : null;
+      return { getFolderById: id => { if (id === 'F2' && dev) return dev; assert.strictEqual(id, 'F1'); return folder; },
+        getFoldersByName: nm => { let u = false; const f = nm === '진학상담_데이터' && !props.DATA_FOLDER_ID ? folder : nm === '진학상담_데이터_dev' && !props.DATA_FOLDER_ID_DEV ? dev : null; return { hasNext: () => !!f && !u, next: () => { u = true; return f; } }; } }; })(),
     Logger: { log() {} },
   };
   vm.createContext(sb); vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'apps-script', 'Code.gs'), 'utf8'), sb);
@@ -76,4 +79,17 @@ t('results.js(입시 결과)도 폴더에 있을 때만 같이 내려옴', () =>
 });
 t('모르는 action·깨진 요청', () => { const g = mk(); assert.strictEqual(g.call('dump', { code: CODE_A }).error, 'unknown'); assert.strictEqual(JSON.parse(g.sb.doPost({ postData: { contents: '{' } }).s).error, 'bad_request'); });
 t('속성이 비어 있으면(CODE_HASHES 없음) 아무 코드도 안 열림', () => { const g = mk(); g.props.CODE_HASHES = ''; assert.strictEqual(g.call('check', { code: CODE_A }).error, 'bad'); });
+t('env=dev 이면 개발판 폴더를 읽고, 없으면 본판(기본)을 읽음', () => {
+  const dev = {}; NAMES.forEach(n => dev[n + '.js'] = 'DEV ' + n);
+  const g = load(Object.fromEntries(NAMES.map(n => [n + '.js', FILES[n + '.js']])), dev);
+  const unz = r => JSON.parse(zlib.gunzipSync(Buffer.from(r.gz, 'base64')).toString('utf8'));
+  const rd = g.call('data', { code: CODE_A, env: 'dev' }); assert.strictEqual(rd.env, 'dev'); assert.strictEqual(unz(rd).files.model, 'DEV model');
+  const rp = g.call('data', { code: CODE_A }); assert.strictEqual(rp.env, 'prod'); assert.strictEqual(unz(rp).files.model, FILES['model.js']);   // 캐시가 판끼리 섞이지 않음
+  const rx = g.call('data', { code: CODE_A, env: 'weird' }); assert.strictEqual(rx.env, 'prod');
+});
+t('개발판 폴더가 없으면 개발판 요청만 서버 오류(본판은 그대로)', () => {
+  const g = mk(); delete g.props.DATA_FOLDER_ID_DEV;
+  const r = g.call('data', { code: CODE_A, env: 'dev' }); assert.strictEqual(r.ok, false); assert.ok(/진학상담_데이터_dev/.test(r.msg));
+  assert.strictEqual(g.call('data', { code: CODE_A }).ok, true);
+});
 console.log(passed + '개 통과');

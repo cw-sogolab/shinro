@@ -27,3 +27,11 @@ admissions_mart*
 admissions_rules*
 원장님_검토_*.xlsx
 data/mart/
+
+# 이 맥에서만 쓰는 것 (2026-11-06): 백업 압축(데이터·학생 이름 포함)·보고서·시안
+_보관/
+개편계획_*.md
+design_drafts/
+img/
+DESIGN_BRIEF.md
+.claude/

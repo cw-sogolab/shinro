@@ -6,6 +6,8 @@
 - `docs/` 화면 (GitHub Pages) · `design/` 디자인 시스템 · `apps-script/` 서버 코드 · `tools/` 데이터 만드는 스크립트 · `tests/` 서버 코드 테스트
 - 접속 코드·코드 해시·데이터는 저장소에 올리지 않는다 (`.gitignore`).
 - 설치 순서: `python3 tools/gas_setup.py --export <폴더>` → 폴더를 드라이브에 올림 → `.secret/설치용_Code.gs` 를 Apps Script 에 붙여넣고 `setup`·`selfTest` 실행 → 웹앱으로 배포 → 주소를 `docs/assets/config.js` 의 `API_URL` 에 넣음.
-- 데이터를 새로 만들면 같은 이름으로 드라이브 폴더에 덮어쓴다.
+- **개발판·본판 (2026-11-06)**: 본판 = main 브랜치 화면 `…/shinro/docs/` + 드라이브 「진학상담_데이터」 (원장님 주소). 개발판 = dev 브랜치 화면 `…/shinro/dev/docs/` + 「진학상담_데이터_dev」. 배포는 `.github/workflows/pages.yml` 이 두 브랜치를 한 사이트로 묶어 올린다.
+- 처음 한 번: Settings → Pages → Source 「GitHub Actions」, Settings → Environments → github-pages 의 배포 허용 브랜치에 `dev` 추가, 드라이브에 「진학상담_데이터_dev」 폴더(본판 파일 복사), 새 `.secret/설치용_Code.gs` 를 Apps Script 에 붙여넣고 새 버전으로 배포(주소 그대로).
+- 고치는 순서: dev 브랜치에서 화면 수정 → 개발판 주소에서 확인 → PR 로 main 병합. 데이터는 `python3 tools/gas_setup.py --export <폴더>`(기본 dev) → 개발판 폴더에 덮어쓰기 → 확인 후 Apps Script 편집기에서 `promoteDevToProd()` 실행(본판의 이전 파일은 「_이전」 폴더에 보관).
 - 학생 데이터(모의고사 점수 + 토플·토익·IELTS): `python3 tools/students_export.py --mock 2026_1회….xlsx … 2026_4회….xlsx` (전국모의고사 채점시트) → `docs/assets/students.js` 를 드라이브 폴더에 덮어쓴다.
 - 「입시 결과」 탭 데이터: `python3 tools/results_export.py` → `docs/assets/results.js` 를 드라이브 폴더에 올린다 (없어도 다른 화면은 동작). 새로 쓰려면 Apps Script 코드를 `.secret/설치용_Code.gs` 로 다시 붙여 넣고 새 버전으로 배포한다.
