@@ -212,9 +212,7 @@
   const GO = [
     { n: 1, h: '#find', t: '학교 찾기', d: '학교·학부·학과·전공 키워드 → 합격 기록과 전형' },
     { n: 2, h: '#pred', t: '예측·추천', d: '학생 성적 → 다음 EJU 예측 → 안정·적정·도전' },
-    { n: 3, h: '#yoko', t: '모집요강', d: '전형·일정·과목·서류 (원문 쪽수와 함께)' },
-    { n: 4, h: '#cmp', t: '비교', d: '담아 둔 학부 최대 4곳 나란히' },
-    { n: 5, h: '#mock', t: '모의고사 분석', d: '회차 요약·문항·성장 추이' }];
+    { n: 3, h: '#yoko', t: '모집요강', d: '전형·일정·과목·서류 (원문 쪽수와 함께)' }];   // ④ 비교·⑤ 모의고사 분석은 위 메뉴로만 (2026-11-06)
   const goBtn = (h, no, t, d, extra) => `<a class="sh-gobtn" href="${h}"${extra || ''}>${no != null ? `<span class="sh-navno">${no}</span>` : `<span>${icon('chevron-right')}</span>`}<span><b>${t}</b>${d ? `<small>${d}</small>` : ''}</span>${icon('chevron-right')}</a>`;
 
   function homeGo() {

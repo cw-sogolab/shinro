@@ -92,4 +92,13 @@ t('개발판 폴더가 없으면 개발판 요청만 서버 오류(본판은 그
   const r = g.call('data', { code: CODE_A, env: 'dev' }); assert.strictEqual(r.ok, false); assert.ok(/진학상담_데이터_dev/.test(r.msg));
   assert.strictEqual(g.call('data', { code: CODE_A }).ok, true);
 });
+t('warmCache: 캐시가 새것이면 다시 안 만들고, 4.5시간 넘었으면 새로 만듦 (본판·개발판 둘 다)', () => {
+  const dev = {}; NAMES.forEach(n => dev[n + '.js'] = 'DEV ' + n);
+  const g = load(Object.fromEntries(NAMES.map(n => [n + '.js', FILES[n + '.js']])), dev);
+  reads.n = 0; g.sb.warmCache(); assert.strictEqual(reads.n, 18);   // 처음: 둘 다 만듦
+  reads.n = 0; g.sb.warmCache(); assert.strictEqual(reads.n, 0);    // 바로 다시: 그대로
+  Object.keys(g.cache).filter(k => k.endsWith('_t')).forEach(k => { g.cache[k] = String(Date.now() - 5 * 3600 * 1000); });
+  reads.n = 0; g.sb.warmCache(); assert.strictEqual(reads.n, 18);   // 오래됨: 새로 만듦
+  reads.n = 0; assert.strictEqual(g.call('data', { code: CODE_A, env: 'dev' }).ok, true); assert.strictEqual(reads.n, 0);   // 화면 요청은 캐시로
+});
 console.log(passed + '개 통과');

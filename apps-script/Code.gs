@@ -14,7 +14,7 @@
  *   CODE_HASHES     허용하는 접속 코드의 해시(쉼표로 구분). 코드 자체는 저장하지 않음
  * 실행 사용자는 「나」(선생님)이라 접속하는 사람이 구글 계정이 없어도 됨. 폴더를 공유할 필요 없음.
  */
-var VER = 'shinro-2';
+var VER = 'shinro-3';
 var DATA_NAMES = ['model', 'curves', 'names_ko', 'yoko', 'yoko_ja', 'yoko_files', 'schools', 'mock', 'scoring'];   // 화면이 읽는 순서
 var OPTIONAL = ['students', 'results'];   // 폴더에 있으면 같이 내려 줌(실제 학생 성적 · 입시 결과 지원자 기록). 없어도 오류 아님
 var MAX_FAIL = 10, FAIL_SEC = 300;   // 5분 안에 틀린 코드 10번이면 5분 동안 잠금
@@ -65,9 +65,10 @@ function folder_(env) {
   return it.next();
 }
 
-/** 폴더의 데이터 js 를 읽어 gzip+base64 문자열로 만든다. 만든 결과는 6시간 캐시 (파일이 바뀌면 키가 달라져 새로 만듦) */
-var CHUNK = 90000, TTL = 21600;
-function readAll_(env) {
+/** 폴더의 데이터 js 를 읽어 gzip+base64 문자열로 만든다. 만든 결과는 6시간 캐시 (파일이 바뀌면 키가 달라져 새로 만듦)
+ *  처음 만들 때는 1분 반쯤 걸리므로 warmCache()(시간 트리거)가 미리 만들어 둔다. refreshMs: 캐시가 이보다 오래됐으면 새로 만듦 */
+var CHUNK = 90000, TTL = 21600, REFRESH_MS = 4.5 * 3600 * 1000;
+function readAll_(env, refreshMs) {
   var folder = folder_(env), blobs = {}, sig = [env || 'prod'], names = [];
   DATA_NAMES.concat(OPTIONAL).forEach(function (n) {
     var it = folder.getFilesByName(n + '.js');
@@ -81,6 +82,7 @@ function readAll_(env) {
   var key = 'bd_' + Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, sig.join('|'), Utilities.Charset.UTF_8)
     .map(function (x) { return ('0' + (x & 0xff).toString(16)).slice(-2); }).join('').slice(0, 20);
   var gz = fromCache_(cache, key);
+  if (gz && refreshMs) { var at = Number(cache.get(key + '_t') || 0); if (!at || Date.now() - at > refreshMs) gz = null; }
   if (!gz) {
     var files = {};
     names.forEach(function (n) { files[n] = blobs[n].getBlob().getDataAsString('UTF-8'); });
@@ -104,6 +106,7 @@ function toCache_(cache, key, text) {
     var n = Math.ceil(text.length / CHUNK);
     for (var i = 0; i < n; i++) cache.put(key + '_' + i, text.substr(i * CHUNK, CHUNK), TTL);
     cache.put(key + '_n', String(n), TTL);
+    cache.put(key + '_t', String(Date.now()), TTL);
   } catch (e) { /* 캐시가 안 되어도 응답은 나감 */ }
 }
 
@@ -139,5 +142,25 @@ function promoteDevToProd() {
     done.push(n);
   });
   Logger.log('본판으로 올림: ' + done.join(', ') + ' · 이전 파일: _이전/' + stamp);
+  warmCache();   // 원장님이 처음 열 때 1분 넘게 기다리지 않게 바로 캐시를 만든다
   return done;
+}
+
+/** 캐시 미리 데우기 (2026-11-06): 본판·개발판 데이터를 미리 묶어 캐시에 넣어 둔다.
+ *  캐시가 없거나 4.5시간보다 오래됐으면(6시간에 사라짐) 새로 만들고, 아니면 그냥 넘어간다.
+ *  installWarmTrigger() 로 1시간마다 돌린다. 드라이브에 파일을 새로 올린 직후에는 편집기에서 직접 한 번 실행하면 바로 빨라진다. */
+function warmCache() {
+  ['prod', 'dev'].forEach(function (env) {
+    var t = Date.now();
+    try { readAll_(env, REFRESH_MS); Logger.log((env === 'dev' ? '개발판' : '본판') + ' 캐시 준비 ' + Math.round((Date.now() - t) / 1000) + '초'); }
+    catch (e) { Logger.log((env === 'dev' ? '개발판' : '본판') + ': ' + e.message); }
+  });
+}
+
+/** 처음 한 번만 실행: warmCache 를 1시간마다 돌리는 트리거를 만든다 (이미 있으면 그대로) */
+function installWarmTrigger() {
+  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'warmCache'; });
+  if (!has) ScriptApp.newTrigger('warmCache').timeBased().everyHours(1).create();
+  Logger.log(has ? '트리거가 이미 있습니다' : '1시간마다 warmCache 트리거를 만들었습니다');
+  warmCache();
 }
