@@ -414,3 +414,113 @@ button.sc-leg[aria-pressed="false"] { opacity: .4; }
 .sh-rpt-sel td, .sh-rpt-sel th { border-bottom: 1px solid #e3e3df; }
 .sh-rpt-sel .num { text-align: right; white-space: nowrap; }
 @media print { .sh-rsel { display: none !important; } }
+
+/* =====================================================================
+ * 플렉스 결 테마 (2026-11-06 채택 — design_drafts/시안_5종 의 3번)
+ * 업무용 대시보드 느낌: 연회색 바탕 + 테두리 있는 흰 카드, 본문 15px, 진한 보조 글자,
+ * 알약 모양 탭·점 달린 상태 칩. 빨강은 여전히 현재 위치(메뉴 점)와 D-7 마감에만.
+ * 라이트 모드 값만 바꾸고 다크 모드는 디자인 시스템 그대로. 디자인 시스템에 반영되면 이 절을 옮긴다.
+ * ===================================================================== */
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --canvas: #f7f8fa;
+  --surface-hover: #f5f6f8;
+  --surface-muted: #f1f3f5;
+  --line: #e9ebee;
+  --ink: #1b1d1f;
+  --ink-muted: #5c636c;
+  --ink-subtle: #868d96;
+  --chart-track: #eef0f3;
+  --shadow-card: none;
+  --radius-xl: 14px;
+  --radius-lg: 12px;
+} }
+:root[data-theme="light"] {
+  --canvas: #f7f8fa;
+  --surface-hover: #f5f6f8;
+  --surface-muted: #f1f3f5;
+  --line: #e9ebee;
+  --ink: #1b1d1f;
+  --ink-muted: #5c636c;
+  --ink-subtle: #868d96;
+  --chart-track: #eef0f3;
+  --shadow-card: none;
+  --radius-xl: 14px;
+  --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --radius-xl: 14px; --radius-lg: 12px; } }
+:root[data-theme="dark"] { --radius-xl: 14px; --radius-lg: 12px; }
+body { font-size: 15px; line-height: 24px; }
+
+/* 앱 바: 흰 바탕 + 아래 선, 메뉴는 알약 모양, 현재 위치는 연회색 알약 + 빨간 점 */
+.ig-appbar { background: var(--surface); border-bottom: 1px solid var(--line); }
+.ig-appbar__brand img { height: 22px; }
+.ig-appbar__nav { gap: 2px; align-items: center; }
+.ig-appbar__nav a { min-height: 36px; padding: 0 12px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--ink-muted); }
+.ig-appbar__nav a:hover { background: var(--surface-muted); color: var(--ink); }
+.ig-appbar__nav a[aria-current="page"] { background: var(--surface-muted); color: var(--ink); }
+.ig-appbar__nav a[aria-current="page"]::after { content: none; }
+.ig-appbar__nav a[aria-current="page"]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); flex: none; }
+.ig-appbar__nav .sh-navno { width: 18px; height: 18px; font-size: 10.5px; box-shadow: inset 0 0 0 1.2px currentColor; }
+.ig-appbar__nav a[aria-current="page"] .sh-navno { color: var(--ink); box-shadow: inset 0 0 0 1.2px currentColor; }
+.ig-appbar__nav a[aria-current="page"] .ig-icon { color: var(--ink); }
+.sh-appsearch .ig-input { min-height: 38px; border-color: var(--line); border-radius: 10px; background: var(--surface); }
+
+/* 본문 폭·간격 */
+.ig-main { gap: var(--space-5); padding-top: var(--space-6); }
+.ig-pagehead__title { font-size: 24px; line-height: 32px; letter-spacing: -0.02em; }
+.ig-pagehead__eyebrow { font-size: 13px; color: var(--ink-subtle); }
+.ig-pagehead__desc { font-size: 14px; }
+
+/* 카드·숫자 카드: 그림자 대신 얇은 테두리 */
+.ig-card, .ig-stat, .sh-home__q, .sh-home__go, .sh-hero__main, .sh-flow__card { border: 1px solid var(--line); box-shadow: none; }
+.ig-card { padding: var(--space-5); }
+.ig-card__title { font-size: 16px; line-height: 24px; }
+.ig-card__sub { font-size: 13px; color: var(--ink-subtle); }
+.ig-stat { padding: 16px 18px; gap: 4px; }
+.ig-stat__label { font-size: 13px; font-weight: 500; color: var(--ink-muted); }
+.ig-stat__value { font-size: 28px; line-height: 34px; }
+.ig-stat__value small { font-size: 14px; }
+.ig-stat__foot { font-size: 12px; color: var(--ink-subtle); }
+
+/* 표: 머리는 바탕 없이 작은 회색 글자, 줄은 연한 선 */
+.ig-table { font-size: 14px; }
+.ig-table th { height: 38px; background: var(--surface); color: var(--ink-subtle); font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--line); }
+.ig-table td { border-bottom: 1px solid var(--surface-muted); }
+.ig-table tbody tr:hover td { background: #fafbfc; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ig-table tbody tr:hover td { background: var(--surface-hover); } }
+
+/* 탭(구간 고르기): 알약 — 고른 것은 검은 알약 */
+.ig-seg { gap: 6px; padding: 0; background: transparent; border-radius: 0; }
+.ig-seg button { min-height: 32px; padding: 0 12px; border-radius: 999px; background: var(--surface-muted); color: var(--ink-muted); font-size: 13px; font-weight: 600; }
+.ig-seg button[aria-pressed="true"], .ig-seg button[aria-selected="true"] { background: var(--inverse); color: var(--on-inverse); box-shadow: none; }
+
+/* 상태 칩: 점 달린 알약 */
+.ig-badge { min-height: 22px; padding: 0 9px; font-size: 12px; }
+.ig-zone { min-height: 22px; padding: 0 10px 0 9px; gap: 5px; }
+.ig-zone::before { width: 6px; height: 6px; border: 0; background: currentColor !important; }
+
+/* 버튼·입력 */
+.ig-btn { border-radius: 10px; border-color: var(--line); }
+.ig-btn--sm { border-radius: 8px; }
+.ig-input { border-color: var(--line); border-radius: 10px; }
+.ig-input:focus { border-color: var(--ink); }
+.sh-bigsearch .ig-input, .sh-kw .ig-input { min-height: 50px; font-size: 16px; border-radius: 12px; border-color: var(--line); background: var(--surface); }
+
+/* 홈: 검색 카드 + 바로가기 카드 */
+.sh-home__q, .sh-home__go { border-radius: 14px; }
+.sh-home__q h1 { font-size: 24px; line-height: 32px; }
+.sh-gobtn { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-height: 56px; }
+.sh-gobtn:hover { background: var(--surface-hover); border-color: #d9dde2; }
+.sh-gobtn .sh-navno { color: var(--ink); }
+
+/* 학교 찾기·상세 */
+.sh-scorebox > summary { font-size: 15px; }
+.sh-trk a { background: var(--surface-muted); border-radius: 999px; }
+.sh-findin__sum { background: var(--surface-hover); border: 1px solid var(--line); border-radius: 12px; }
+.ig-section-h h2 { font-size: 17px; }
+.ig-disclaimer { font-size: 12.5px; color: var(--ink-subtle); }
+/* 일정 칸 안의 D-day 칩 글자색 (`.ig-tl__what span` 이 덮어써서 빨간 칩 위 글자가 회색으로 보이던 문제) */
+.ig-tl__what .ig-dday--d7 { color: var(--on-brand); }
+.ig-tl__what .ig-dday--d30 { color: var(--warning); }
+.ig-tl__what .ig-dday--open { color: var(--ink); }
+.ig-tl__what .ig-dday--past { color: var(--ink-subtle); }
